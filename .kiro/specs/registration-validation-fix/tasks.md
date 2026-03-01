@@ -1,0 +1,130 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Frontend Validation Matches Backend
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists
+  - **Scoped PBT Approach**: For deterministic bugs, scope the property to the concrete failing case(s) to ensure reproducibility
+  - Test that frontend validation prevents submission for passwords that don't meet backend requirements:
+    - Password with 8-11 characters (e.g., "Pass123!")
+    - Password without uppercase (e.g., "password1234!")
+    - Password without lowercase (e.g., "PASSWORD1234!")
+    - Password without digit (e.g., "Password!@#$")
+    - Password without special character from @$!%*?& (e.g., "Password1234")
+    - Password with wrong special character (e.g., "Password1234#")
+  - Test that frontend displays specific error messages for each failed requirement
+  - Test that password strength checker correctly identifies weak passwords
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found:
+    - Frontend allows submit for 8-11 character passwords
+    - Password strength checker shows "strong" for passwords missing required characters
+    - Backend validation errors displayed as concatenated string instead of separate messages
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Valid Password Registration and Non-Password Validation
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-buggy inputs:
+    - Valid password "MyStr0ng!Pass2024" (12+ chars, all requirements) successfully registers user
+    - Duplicate email returns "This email address is already registered"
+    - Password mismatch returns "Lozinke se ne poklapaju"
+    - Invalid email format returns email validation error
+    - Successful registration sends welcome email and redirects to dashboard
+  - Write property-based tests capturing observed behavior patterns:
+    - For all passwords meeting backend requirements (length >= 12, uppercase, lowercase, digit, special char from @$!%*?&), registration succeeds
+    - For all duplicate emails, error message is displayed
+    - For all password mismatches, error message is displayed
+    - For all invalid email formats, error message is displayed
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [-] 3. Fix for registration validation mismatch
+
+  - [x] 3.1 Update HTML minlength attributes in register.blade.php
+    - Change minlength="8" to minlength="12" for password input field (line 55)
+    - Change minlength="8" to minlength="12" for password_confirmation input field (line 70)
+    - _Bug_Condition: isBugCondition(input) where input.password.length >= 8 AND input.password.length < 12_
+    - _Expected_Behavior: Frontend prevents submission for passwords < 12 characters_
+    - _Preservation: Valid passwords (12+ chars with all requirements) continue to work_
+    - _Requirements: 1.1, 2.1_
+
+  - [x] 3.2 Fix password strength checker function
+    - Update updateStrength() function in register.blade.php (lines 128-145)
+    - Change length check from `value.length >= 8` to `value.length >= 12` (line 129)
+    - Change special character regex from `/[^A-Za-z0-9]/` to `/[@$!%*?&]/` (line 132)
+    - Add detailed feedback showing which requirements are met and which are not
+    - Display specific messages like "Nedostaje: veliko slovo, specijalni karakter"
+    - _Bug_Condition: isBugCondition(input) where password missing uppercase OR lowercase OR digit OR special char from @$!%*?&_
+    - _Expected_Behavior: Password strength checker uses same rules as backend and shows specific missing requirements_
+    - _Preservation: Valid passwords continue to show "strong" indicator_
+    - _Requirements: 1.4, 1.5, 2.4, 2.5_
+
+  - [x] 3.3 Improve error display logic
+    - Refactor error handling in register.blade.php (line 199)
+    - Replace `Object.values(data.errors).flat().join(' ')` with logic that displays each error separately
+    - Display each validation error on a new line or as bullet points for better readability
+    - Ensure backend validation errors are clearly visible to users
+    - _Bug_Condition: isBugCondition(input) where backend returns 422 with validation errors_
+    - _Expected_Behavior: Each validation error is displayed clearly and separately_
+    - _Preservation: Non-password validation errors (email, terms) continue to display correctly_
+    - _Requirements: 1.3, 2.3_
+
+  - [x] 3.4 Add frontend validation before form submission
+    - Add JavaScript validation function that checks all backend requirements before allowing form submit
+    - Check password length >= 12
+    - Check presence of uppercase letter
+    - Check presence of lowercase letter
+    - Check presence of digit
+    - Check presence of special character from @$!%*?&
+    - Display clear error messages for each unmet requirement
+    - Prevent form submission if any requirement is not met
+    - _Bug_Condition: isBugCondition(input) where password fails any backend requirement_
+    - _Expected_Behavior: Frontend prevents submission and displays specific error messages_
+    - _Preservation: Valid passwords continue to submit successfully_
+    - _Requirements: 1.1, 1.2, 2.1, 2.2_
+
+  - [x] 3.5 Update HTML minlength attributes in reset-password.blade.php
+    - Change minlength="8" to minlength="12" for password input fields
+    - Apply same changes as in register.blade.php to maintain consistency
+    - _Bug_Condition: Same validation mismatch exists in password reset flow_
+    - _Expected_Behavior: Password reset uses same validation rules as registration_
+    - _Preservation: Valid password resets continue to work_
+    - _Requirements: 2.1_
+
+  - [x] 3.6 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Frontend Validation Matches Backend
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify that frontend now prevents submission for all bug condition cases
+    - Verify that specific error messages are displayed for each failed requirement
+    - Verify that password strength checker correctly identifies weak passwords
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+
+  - [x] 3.7 Verify preservation tests still pass
+    - **Property 2: Preservation** - Valid Password Registration and Non-Password Validation
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm that valid passwords (12+ chars with all requirements) still register successfully
+    - Confirm that duplicate email errors still display correctly
+    - Confirm that password mismatch errors still display correctly
+    - Confirm that invalid email format errors still display correctly
+    - Confirm that successful registration flow (welcome email, redirect) still works
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [ ] 4. Checkpoint - Ensure all tests pass
+  - Run all exploration tests and verify they pass (bug is fixed)
+  - Run all preservation tests and verify they pass (no regressions)
+  - Manually test registration flow with various password combinations
+  - Verify error messages are clear and helpful to users
+  - Ask the user if questions arise

@@ -52,7 +52,7 @@
                         id="password"
                         name="password"
                         required
-                        minlength="8"
+                        minlength="12"
                         autocomplete="new-password"
                         class="w-full h-12 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="{{ __('ui.auth.password_min') }}"
@@ -67,7 +67,7 @@
                         id="password_confirmation"
                         name="password_confirmation"
                         required
-                        minlength="8"
+                        minlength="12"
                         autocomplete="new-password"
                         class="w-full h-12 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="{{ __('ui.auth.password_confirm') }}"
@@ -119,24 +119,64 @@
             } else {
                 message.classList.add('border-green-200', 'bg-green-50', 'text-green-700');
             }
+            // Preserve line breaks in error messages
+            message.style.whiteSpace = 'pre-line';
             message.textContent = text;
+        }
+
+        function validatePasswordRequirements(password) {
+            const errors = [];
+
+            if (password.length < 12) {
+                errors.push('Lozinka mora imati najmanje 12 karaktera');
+            }
+            if (!/[A-Z]/.test(password)) {
+                errors.push('Lozinka mora sadržati najmanje jedno veliko slovo');
+            }
+            if (!/[a-z]/.test(password)) {
+                errors.push('Lozinka mora sadržati najmanje jedno malo slovo');
+            }
+            if (!/\d/.test(password)) {
+                errors.push('Lozinka mora sadržati najmanje jedan broj');
+            }
+            if (!/[@$!%*?&]/.test(password)) {
+                errors.push('Lozinka mora sadržati najmanje jedan specijalni karakter (@$!%*?&)');
+            }
+
+            return errors;
         }
 
         function updateStrength(value) {
             let score = 0;
-            if (value.length >= 8) score += 1;
-            if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score += 1;
-            if (/\d/.test(value)) score += 1;
-            if (/[^A-Za-z0-9]/.test(value)) score += 1;
+            const hasLength = value.length >= 12;
+            const hasUppercase = /[A-Z]/.test(value);
+            const hasLowercase = /[a-z]/.test(value);
+            const hasDigit = /\d/.test(value);
+            const hasSpecialChar = /[@$!%*?&]/.test(value);
+
+            if (hasLength) score += 1;
+            if (hasUppercase && hasLowercase) score += 1;
+            if (hasDigit) score += 1;
+            if (hasSpecialChar) score += 1;
+
+            // Build missing requirements message
+            const missing = [];
+            if (!hasLength) missing.push('12 karaktera');
+            if (!hasUppercase) missing.push('veliko slovo');
+            if (!hasLowercase) missing.push('malo slovo');
+            if (!hasDigit) missing.push('broj');
+            if (!hasSpecialChar) missing.push('specijalni karakter (@$!%*?&)');
 
             if (!value) {
                 strength.textContent = @json(__('ui.auth.password_strength').': '.__('ui.auth.strength_none'));
                 strength.className = 'text-xs text-muted-foreground';
             } else if (score <= 1) {
-                strength.textContent = @json(__('ui.auth.password_strength').': '.__('ui.auth.strength_weak'));
+                const missingText = missing.length > 0 ? ' - Nedostaje: ' + missing.join(', ') : '';
+                strength.textContent = @json(__('ui.auth.password_strength').': '.__('ui.auth.strength_weak')) + missingText;
                 strength.className = 'text-xs text-red-600';
             } else if (score <= 3) {
-                strength.textContent = @json(__('ui.auth.password_strength').': '.__('ui.auth.strength_medium'));
+                const missingText = missing.length > 0 ? ' - Nedostaje: ' + missing.join(', ') : '';
+                strength.textContent = @json(__('ui.auth.password_strength').': '.__('ui.auth.strength_medium')) + missingText;
                 strength.className = 'text-xs text-amber-600';
             } else {
                 strength.textContent = @json(__('ui.auth.password_strength').': '.__('ui.auth.strength_strong'));
@@ -163,8 +203,17 @@
 
         form.addEventListener('submit', async function (event) {
             event.preventDefault();
+
+            // Validate password match
             if (password.value !== passwordConfirm.value) {
                 showMessage('error', @json(__('ui.auth.password_mismatch')));
+                return;
+            }
+
+            // Validate password requirements
+            const passwordErrors = validatePasswordRequirements(password.value);
+            if (passwordErrors.length > 0) {
+                showMessage('error', '• ' + passwordErrors.join('\n• '));
                 return;
             }
 
@@ -194,7 +243,25 @@
 
                 const data = await response.json();
                 if (!response.ok) {
-                    const errorText = data?.message || (data?.errors ? Object.values(data.errors).flat().join(' ') : @json(__('ui.auth.register_failed')));
+                    let errorText = data?.message || @json(__('ui.auth.register_failed'));
+
+                    // If there are validation errors, display them as a list
+                    if (data?.errors) {
+                        const errorMessages = [];
+                        for (const field in data.errors) {
+                            const fieldErrors = data.errors[field];
+                            if (Array.isArray(fieldErrors)) {
+                                errorMessages.push(...fieldErrors);
+                            } else {
+                                errorMessages.push(fieldErrors);
+                            }
+                        }
+                        if (errorMessages.length > 0) {
+                            errorText = errorMessages.join('\n• ');
+                            errorText = '• ' + errorText;
+                        }
+                    }
+
                     showMessage('error', errorText);
 
                     // Track failed registration

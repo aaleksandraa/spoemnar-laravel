@@ -43,7 +43,7 @@
                         id="resetPassword"
                         name="password"
                         required
-                        minlength="8"
+                        minlength="12"
                         autocomplete="new-password"
                         class="w-full h-12 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="{{ __('ui.auth.password_min') }}"
@@ -57,7 +57,7 @@
                         id="resetPasswordConfirm"
                         name="password_confirmation"
                         required
-                        minlength="8"
+                        minlength="12"
                         autocomplete="new-password"
                         class="w-full h-12 px-4 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="{{ __('ui.auth.password_confirm') }}"
@@ -96,6 +96,8 @@
             } else {
                 message.classList.add('border-green-200', 'bg-green-50', 'text-green-700');
             }
+            // Preserve line breaks in error messages
+            message.style.whiteSpace = 'pre-line';
             message.textContent = text;
         }
 
@@ -131,7 +133,25 @@
 
                 const data = await response.json();
                 if (!response.ok) {
-                    const errorText = data?.message || (data?.errors ? Object.values(data.errors).flat().join(' ') : @json(__('ui.auth.password_reset_failed')));
+                    let errorText = data?.message || @json(__('ui.auth.password_reset_failed'));
+
+                    // If there are validation errors, display them as a list
+                    if (data?.errors) {
+                        const errorMessages = [];
+                        for (const field in data.errors) {
+                            const fieldErrors = data.errors[field];
+                            if (Array.isArray(fieldErrors)) {
+                                errorMessages.push(...fieldErrors);
+                            } else {
+                                errorMessages.push(fieldErrors);
+                            }
+                        }
+                        if (errorMessages.length > 0) {
+                            errorText = errorMessages.join('\n• ');
+                            errorText = '• ' + errorText;
+                        }
+                    }
+
                     showMessage('error', errorText);
                     return;
                 }
