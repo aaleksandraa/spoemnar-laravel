@@ -1,5 +1,5 @@
 @php
-    $jsonLd = $getJsonLd();
+    $jsonLd = $this->getJsonLd();
 @endphp
 
 @if($jsonLd)

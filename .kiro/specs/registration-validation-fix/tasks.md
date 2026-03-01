@@ -45,7 +45,7 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [-] 3. Fix for registration validation mismatch
+- [x] 3. Fix for registration validation mismatch
 
   - [x] 3.1 Update HTML minlength attributes in register.blade.php
     - Change minlength="8" to minlength="12" for password input field (line 55)
@@ -122,7 +122,7 @@
     - Confirm that successful registration flow (welcome email, redirect) still works
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 4. Checkpoint - Ensure all tests pass
+- [x] 4. Checkpoint - Ensure all tests pass
   - Run all exploration tests and verify they pass (bug is fixed)
   - Run all preservation tests and verify they pass (no regressions)
   - Manually test registration flow with various password combinations
