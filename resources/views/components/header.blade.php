@@ -50,10 +50,32 @@
     $hoverTextClass = $isTransparent ? 'hover:text-white/80' : 'hover:text-accent';
     $logoTextClass = $isTransparent ? 'text-white' : 'text-primary dark:text-[#ECEFF3]';
     $buttonBorderClass = $isTransparent ? 'border-white/30 text-white hover:bg-white/10' : 'border-border hover:bg-muted';
-    $mobileMenuBgClass = $isTransparent ? 'bg-black/90 backdrop-blur-md border-white/20' : 'bg-card border-border';
+    $isCompactAuthLocale = in_array($currentLocale, ['de', 'it'], true);
+    $desktopLoginVisibilityClass = $isCompactAuthLocale ? 'hidden 2xl:inline-flex' : 'hidden xl:inline-flex';
+    $mobileLoginVisibilityClass = $isCompactAuthLocale ? 'hidden' : 'hidden min-[390px]:inline-flex';
+    $mobileMenuPanelClass = $isTransparent
+        ? 'bg-black/90 border-white/20 text-white'
+        : 'bg-card/95 border-border text-foreground';
+    $mobileItemHoverClass = $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted';
+    $accountLabel = __('ui.nav.account');
+    if ($accountLabel === 'ui.nav.account') {
+        $accountLabel = 'Account';
+    }
 @endphp
 
-<header class="border-b {{ $headerBorderClass }} {{ $headerBgClass }} {{ $positionClass }} top-0 left-0 right-0 z-50" x-data="{ mobileMenuOpen: false, langOpen: false }">
+<header
+    class="border-b {{ $headerBorderClass }} {{ $headerBgClass }} {{ $positionClass }} top-0 left-0 right-0 z-50"
+    x-data="{
+        mobileMenuOpen: false,
+        langOpen: false,
+        isDark: document.documentElement.classList.contains('dark'),
+        toggleTheme() {
+            window.toggleDarkMode();
+            this.isDark = document.documentElement.classList.contains('dark');
+        }
+    }"
+    @keydown.escape.window="mobileMenuOpen = false; langOpen = false"
+>
     <div class="container mx-auto px-4 flex h-16 items-center justify-between">
         <a href="{{ route('home') }}" class="flex items-center space-x-2">
             <svg class="h-7 w-7 shrink-0 {{ $isTransparent ? 'text-white' : '' }}" style="{{ $isTransparent ? '' : 'color: rgb(224, 186, 133);' }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -116,7 +138,7 @@
             </div>
 
             <div id="headerGuestDesktop" class="hidden md:flex items-center gap-2">
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-4 h-10 rounded-lg border transition-colors text-sm font-medium {{ $buttonBorderClass }} {{ $textClass }}">
+                <a href="{{ route('login') }}" class="{{ $desktopLoginVisibilityClass }} items-center justify-center px-4 h-10 rounded-lg border transition-colors text-sm font-medium {{ $buttonBorderClass }} {{ $textClass }}">
                     {{ __('ui.auth.login_title') }}
                 </a>
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-4 h-10 rounded-lg bg-gradient-accent text-accent-foreground shadow-gold hover:opacity-90 transition-opacity text-sm font-medium">
@@ -133,124 +155,142 @@
             <button
                 type="button"
                 @click="mobileMenuOpen = !mobileMenuOpen"
-                class="md:hidden p-2 rounded-md transition-colors {{ $textClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }}"
+                class="md:hidden p-2.5 rounded-xl border transition-colors {{ $textClass }} {{ $buttonBorderClass }}"
                 aria-label="Open menu"
+                :aria-expanded="mobileMenuOpen ? 'true' : 'false'"
             >
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg x-show="!mobileMenuOpen" x-transition class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg x-show="mobileMenuOpen" x-transition class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"/>
                 </svg>
             </button>
         </div>
     </div>
 
-    <div x-show="mobileMenuOpen" x-transition class="md:hidden border-t {{ $mobileMenuBgClass }}">
-        <nav class="container mx-auto px-4 py-4 space-y-1" aria-label="Mobile navigation">
-            <!-- Dark Mode Toggle Section -->
-            <div class="pb-3 mb-3 border-b {{ $headerBorderClass }}">
-                <button
-                    onclick="toggleDarkMode()"
-                    class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} {{ $textClass }}"
-                    aria-label="{{ __('ui.theme.toggle_dark_mode') }}"
-                >
-                    <!-- Sun icon (visible in dark mode) -->
-                    <svg class="w-5 h-5 hidden dark:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    <!-- Moon icon (visible in light mode) -->
-                    <svg class="w-5 h-5 block dark:hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                    </svg>
-                    <span class="text-base font-medium">{{ __('ui.theme.toggle_dark_mode') }}</span>
-                </button>
-            </div>
+    <div x-show="mobileMenuOpen" x-transition.opacity.duration.200ms class="md:hidden fixed inset-0 z-40">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="mobileMenuOpen = false"></div>
+        <div class="absolute left-3 right-3 top-[68px] rounded-2xl border shadow-2xl {{ $mobileMenuPanelClass }}">
+            <nav
+                class="max-h-[calc(100vh-84px)] overflow-y-auto p-4 space-y-4"
+                aria-label="Mobile navigation"
+                @click="if ($event.target.closest('a')) { mobileMenuOpen = false }"
+            >
+                <div class="rounded-xl border {{ $headerBorderClass }} p-1">
+                    <button
+                        @click="toggleTheme()"
+                        class="w-full flex items-center justify-between gap-3 px-3 py-3 rounded-lg transition-colors {{ $mobileItemHoverClass }} {{ $textClass }}"
+                        aria-label="{{ __('ui.theme.toggle_dark_mode') }}"
+                    >
+                        <span class="inline-flex items-center gap-3">
+                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full {{ $isTransparent ? 'bg-white/15' : 'bg-muted' }}">
+                                <svg class="w-4 h-4 hidden dark:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <svg class="w-4 h-4 block dark:hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                </svg>
+                            </span>
+                            <span class="text-sm font-semibold">{{ __('ui.theme.toggle_dark_mode') }}</span>
+                        </span>
+                        <span class="text-[11px] uppercase tracking-wide opacity-70" x-text="isDark ? 'Dark' : 'Light'"></span>
+                    </button>
+                </div>
 
-            <!-- Navigation Section -->
-            <div class="space-y-1">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <div class="space-y-1">
+                <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     <span>{{ __('ui.nav.home') }}</span>
                 </a>
-                <a href="{{ route('about') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <a href="{{ route('about') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span>{{ __('ui.nav.about') }}</span>
                 </a>
-                <a href="{{ route('contact') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <a href="{{ route('contact') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                     <span>{{ __('ui.nav.contact') }}</span>
                 </a>
-                <a href="{{ route('search.page') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <a href="{{ route('search.page') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                     <span>{{ __('ui.home.search_tab') }}</span>
                 </a>
-                <a href="{{ route('memorial.create') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <a href="{{ route('memorial.create') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     <span>{{ __('ui.nav.create') }}</span>
                 </a>
-                <a href="{{ route('dashboard') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <a href="{{ route('dashboard') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 13a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/>
                     </svg>
                     <span>{{ __('ui.nav.dashboard') }}</span>
                 </a>
-                <a href="{{ route('admin.panel') }}" data-admin-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }} transition-colors">
+                <a href="{{ route('admin.panel') }}" data-admin-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                     <span>{{ __('ui.nav.admin') }}</span>
                 </a>
-            </div>
-
-            <!-- Account Section -->
-            <div id="headerGuestMobileActions" class="pt-4 mt-4 border-t {{ $headerBorderClass }} space-y-2">
-                <div class="px-3 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ __('ui.nav.account') ?? 'Account' }}</span>
                 </div>
-                <a href="{{ route('login') }}" class="hidden xs:inline-flex items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }}">
+
+                <div id="headerGuestMobileActions" class="pt-4 mt-2 border-t {{ $headerBorderClass }} space-y-2">
+                <div class="px-3 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ $accountLabel }}</span>
+                </div>
+                <a href="{{ route('login') }}" class="{{ $mobileLoginVisibilityClass }} items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.auth.login_title') }}
                 </a>
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg bg-gradient-accent text-accent-foreground shadow-gold hover:opacity-90 transition-opacity text-sm font-medium">
                     {{ __('ui.auth.register_title') }}
                 </a>
-            </div>
-
-            <div id="headerAuthMobileActions" class="hidden pt-4 mt-4 border-t {{ $headerBorderClass }} space-y-2">
-                <div class="px-3 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ __('ui.nav.account') ?? 'Account' }}</span>
                 </div>
-                <button type="button" data-logout-btn class="w-full inline-flex items-center justify-center px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted' }}">
+
+                <div id="headerAuthMobileActions" class="hidden pt-4 mt-2 border-t {{ $headerBorderClass }} space-y-2">
+                <div class="px-3 mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ $accountLabel }}</span>
+                </div>
+                <button type="button" data-logout-btn class="w-full inline-flex items-center justify-center px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.nav.logout') }}
                 </button>
-            </div>
-
-            <!-- Language Section -->
-            <div class="pt-4 mt-4 border-t {{ $headerBorderClass }}">
-                <div class="px-3 mb-3">
-                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ __('ui.languages.choose') }}</span>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
+
+                <div class="pt-4 mt-2 border-t {{ $headerBorderClass }}">
+                <div class="px-3 mb-3 flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ __('ui.languages.choose') }}</span>
+                    <span class="text-[11px] {{ $textClass }} opacity-60 uppercase tracking-wide">{{ strtoupper($currentLocale) }}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
                     @foreach($availableLocales as $code => $label)
                         <a
                             href="{{ $localizedUrl($code) }}"
-                            class="flex flex-col items-center justify-center px-2 py-3 rounded-lg border text-center transition-all {{ $currentLocale === $code ? ($isTransparent ? 'bg-white/20 border-white text-white font-semibold' : 'bg-accent/10 border-accent text-accent font-semibold') : ($buttonBorderClass . ' ' . $textClass . ' ' . ($isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted')) }}"
+                            class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border transition-all {{ $currentLocale === $code ? ($isTransparent ? 'bg-white/20 border-white text-white font-semibold' : 'bg-accent/10 border-accent text-accent font-semibold') : ($buttonBorderClass . ' ' . $textClass . ' ' . $mobileItemHoverClass) }}"
                         >
-                            <span class="text-xs font-bold uppercase tracking-wide">{{ $code }}</span>
-                            <span class="text-[10px] mt-0.5 opacity-75">{{ $label }}</span>
+                            <span class="inline-flex items-center gap-2 min-w-0">
+                                <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase {{ $currentLocale === $code ? ($isTransparent ? 'bg-white/20' : 'bg-accent/20') : ($isTransparent ? 'bg-white/10' : 'bg-muted') }}">{{ $code }}</span>
+                                <span class="text-xs truncate">{{ $label }}</span>
+                            </span>
+                            @if($currentLocale === $code)
+                                <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.415 0l-3.25-3.25a1 1 0 111.414-1.42l2.543 2.544 6.543-6.544a1 1 0 011.415 0z" clip-rule="evenodd"/>
+                                </svg>
+                            @endif
                         </a>
                     @endforeach
                 </div>
-            </div>
-        </nav>
+                </div>
+            </nav>
+        </div>
     </div>
 </header>
 
