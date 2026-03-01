@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Explicit aliases avoid case-sensitive autoload issues on Linux hosts.
+        Blade::component('analytics.gtm-head', \App\View\Components\Analytics\GTMHead::class);
+        Blade::component('analytics.gtm-body', \App\View\Components\Analytics\GTMBody::class);
+
         // Load security configuration
         $this->loadSecurityConfiguration();
 

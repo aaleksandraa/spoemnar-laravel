@@ -5,7 +5,7 @@ namespace App\View\Components\Analytics;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-class GtmBody extends Component
+class GTMBody extends Component
 {
     /**
      * Get the view / contents that represent the component.

@@ -14,6 +14,7 @@ use App\Support\LocaleResolver;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -29,24 +30,41 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
-        $user = User::create([
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        UserRole::firstOrCreate([
-            'user_id' => $user->id,
-            'role' => 'user',
-        ]);
-
-        // Create profile automatically
-        $user->profile()->create([
-            'email' => $validated['email'],
-            'full_name' => $validated['full_name'] ?? null,
-        ]);
-
         $preferredLocale = $this->resolvePreferredLocale((string) $request->input('locale', ''));
+
+        try {
+            ['user' => $user, 'token' => $token] = DB::transaction(function () use ($validated): array {
+                $user = User::create([
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]);
+
+                UserRole::firstOrCreate([
+                    'user_id' => $user->id,
+                    'role' => 'user',
+                ]);
+
+                // Create profile automatically.
+                $user->profile()->create([
+                    'email' => $validated['email'],
+                    'full_name' => $validated['full_name'] ?? null,
+                ]);
+
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                return [
+                    'user' => $user,
+                    'token' => $token,
+                ];
+            });
+        } catch (\Throwable $exception) {
+            Log::error('Registration transactional step failed.', [
+                'email' => $validated['email'] ?? null,
+                'error' => $exception->getMessage(),
+            ]);
+            throw $exception;
+        }
+
         $fullName = trim((string) ($validated['full_name'] ?? ''));
         if ($fullName === '') {
             $fullName = (string) $user->email;
@@ -65,8 +83,6 @@ class AuthController extends Controller
                 'error' => $exception->getMessage(),
             ]);
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'user' => $user->load('profile', 'roles'),
