@@ -51,6 +51,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
 
+        // Bot protection middleware - must run early to block malicious requests
+        // Order: IpBlocker → BotAttackDetector (after CORS, before other middleware)
+        $middleware->append(\App\Http\Middleware\IpBlocker::class);
+        $middleware->append(\App\Http\Middleware\BotAttackDetector::class);
+
         // Add security headers globally
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
