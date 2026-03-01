@@ -243,7 +243,7 @@ class RegistrationValidationPreservationTest extends TestCase
 
     /**
      * Data provider for valid passwords
-     * All passwords meet backend requirements: 12+ chars, uppercase, lowercase, digit, special char from @$!%*?&
+     * All passwords meet backend requirements: 12+ chars, uppercase, lowercase, digit, special char
      */
     public static function validPasswordProvider(): array
     {
@@ -260,6 +260,7 @@ class RegistrationValidationPreservationTest extends TestCase
             'numbers at end' => ['Password!@$123'],  // Numbers at end
             'numbers at start' => ['123Password!@$'],  // Numbers at start
             'mixed case throughout' => ['PaSsWoRd!123'],  // Mixed case
+            'broader special chars' => ["XcdC5>Z'iaz)zke@"],  // > ' ) and @
         ];
     }
 

@@ -88,6 +88,7 @@
         const submit = document.getElementById('resetPasswordSubmit');
         const message = document.getElementById('resetPasswordMessage');
         const loginUrl = @json(route('login', ['locale' => $currentLocale]));
+        const locale = @json($currentLocale);
 
         function showMessage(type, text) {
             message.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-green-200', 'bg-green-50', 'text-green-700');
@@ -128,6 +129,7 @@
                         email: document.getElementById('resetEmail').value.trim(),
                         password,
                         password_confirmation: passwordConfirmation,
+                        locale,
                     }),
                 });
 
@@ -147,8 +149,7 @@
                             }
                         }
                         if (errorMessages.length > 0) {
-                            errorText = errorMessages.join('\n• ');
-                            errorText = '• ' + errorText;
+                            errorText = '- ' + errorMessages.join('\n- ');
                         }
                     }
 

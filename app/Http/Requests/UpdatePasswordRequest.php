@@ -2,16 +2,27 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\AppliesRequestLocale;
+use App\Support\LocaleResolver;
+use App\Support\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePasswordRequest extends FormRequest
 {
+    use AppliesRequestLocale;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->applyRequestLocale();
     }
 
     /**
@@ -22,8 +33,13 @@ class UpdatePasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'string', 'min:12', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'],
+            'password' => PasswordPolicy::validationRules(),
             'password_confirmation' => ['required', 'same:password'],
+            'locale' => [
+                'nullable',
+                'string',
+                Rule::in(LocaleResolver::supportedLocales()),
+            ],
         ];
     }
 
@@ -35,11 +51,12 @@ class UpdatePasswordRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 12 characters long.',
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (@$!%*?&).',
-            'password_confirmation.required' => 'Password confirmation is required.',
-            'password_confirmation.same' => 'Password confirmation does not match.',
+            'password.required' => __('auth_validation.password.required'),
+            'password.min' => __('auth_validation.password.min'),
+            'password.regex' => __('auth_validation.password.regex'),
+            'password_confirmation.required' => __('auth_validation.password_confirmation.required'),
+            'password_confirmation.same' => __('auth_validation.password_confirmation.same'),
+            'locale.in' => __('auth_validation.locale.in'),
         ];
     }
 }

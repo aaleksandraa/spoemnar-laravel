@@ -2,16 +2,24 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\AppliesRequestLocale;
 use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
+    use AppliesRequestLocale;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->applyRequestLocale();
     }
 
     /**
@@ -35,9 +43,10 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email address is required.',
-            'email.email' => 'Please provide a valid email address.',
-            'password.required' => 'Password is required.',
+            'email.required' => __('auth_validation.email.required'),
+            'email.email' => __('auth_validation.email.email'),
+            'email.max' => __('auth_validation.email.max'),
+            'password.required' => __('auth_validation.password.required'),
         ];
     }
 }

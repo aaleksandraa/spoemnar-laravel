@@ -90,10 +90,10 @@ class RegistrationValidationBugConditionTest extends TestCase
     }
 
     /**
-     * Test that password strength checker validates special characters from @$!%*?& set
+     * Test that password strength checker validates broad special characters
      *
-     * **EXPECTED OUTCOME ON UNFIXED CODE**: Test FAILS - uses /[^A-Za-z0-9]/ instead of /[@$!%*?&]/
-     * **EXPECTED OUTCOME ON FIXED CODE**: Test PASSES - uses /[@$!%*?&]/ to match backend
+     * **EXPECTED OUTCOME ON UNFIXED CODE**: Test FAILS - uses /[@$!%*?&]/ restricted set
+     * **EXPECTED OUTCOME ON FIXED CODE**: Test PASSES - uses /[^A-Za-z0-9]/ broad set
      *
      * **Validates: Requirements 1.5, 2.5**
      */
@@ -102,22 +102,21 @@ class RegistrationValidationBugConditionTest extends TestCase
         // Act: Render the registration page
         $response = $this->get(route('register', ['locale' => 'en']));
 
-        // Assert: JavaScript should check for special characters from @$!%*?& set
+        // Assert: JavaScript should check for broad special characters
         $response->assertStatus(200);
 
         $content = $response->getContent();
 
-        // The strength checker should use /[@$!%*?&]/ not /[^A-Za-z0-9]/
-        $this->assertStringNotContainsString(
+        $this->assertStringContainsString(
             '/[^A-Za-z0-9]/',
             $content,
-            'Password strength checker should not accept any non-alphanumeric character'
+            'Password strength checker should accept broad non-alphanumeric special characters'
         );
 
-        $this->assertStringContainsString(
+        $this->assertStringNotContainsString(
             '/[@$!%*?&]/',
             $content,
-            'Password strength checker should only accept special characters from @$!%*?& set'
+            'Password strength checker should not be limited to a small special-character allowlist'
         );
     }
 
@@ -248,7 +247,7 @@ class RegistrationValidationBugConditionTest extends TestCase
     }
 
     /**
-     * Test that backend rejects password without special character from @$!%*?& set
+     * Test that backend rejects password without any special character
      *
      * **EXPECTED OUTCOME ON UNFIXED CODE**: Test PASSES (backend correctly rejects)
      * **EXPECTED OUTCOME ON FIXED CODE**: Test PASSES (backend still correctly rejects)
@@ -279,20 +278,20 @@ class RegistrationValidationBugConditionTest extends TestCase
     }
 
     /**
-     * Test that backend rejects password with wrong special character (not in @$!%*?& set)
+     * Test that backend accepts broader special characters
      *
-     * **EXPECTED OUTCOME ON UNFIXED CODE**: Test PASSES (backend correctly rejects)
-     * **EXPECTED OUTCOME ON FIXED CODE**: Test PASSES (backend still correctly rejects)
+     * **EXPECTED OUTCOME ON UNFIXED CODE**: Test FAILS (backend incorrectly rejects)
+     * **EXPECTED OUTCOME ON FIXED CODE**: Test PASSES (backend accepts broader characters)
      *
      * **Validates: Requirements 1.2, 1.5**
      */
-    public function test_backend_rejects_password_with_wrong_special_character(): void
+    public function test_backend_accepts_broader_special_characters(): void
     {
-        // Arrange: Password with # which is not in the allowed set @$!%*?&
+        // Arrange: Password with broader special characters
         $payload = [
             'email' => 'test@example.com',
-            'password' => 'Password1234#',  // 13 characters, but # is not allowed
-            'password_confirmation' => 'Password1234#',
+            'password' => "XcdC5>Z'iaz)zke@",
+            'password_confirmation' => "XcdC5>Z'iaz)zke@",
             'full_name' => 'Test User',
             'locale' => 'en',
         ];
@@ -300,13 +299,8 @@ class RegistrationValidationBugConditionTest extends TestCase
         // Act: Submit registration
         $response = $this->postJson('/api/v1/register', $payload);
 
-        // Assert: Backend should reject with 422 validation error
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors('password');
-
-        $errors = $response->json('errors.password');
-        $this->assertIsArray($errors);
-        $this->assertStringContainsString('@$!%*?&', implode(' ', $errors));
+        // Assert: Backend should accept the password
+        $response->assertStatus(201);
     }
 
     /**

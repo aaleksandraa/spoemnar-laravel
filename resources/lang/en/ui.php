@@ -208,7 +208,7 @@ return [
         'email' => 'Email',
         'password' => 'Password',
         'password_confirm' => 'Confirm password',
-        'password_min' => 'Minimum 8 characters',
+        'password_min' => 'Minimum 12 characters',
         'remember_me' => 'Remember me',
         'need_help' => 'Need help?',
         'login_button' => 'Login',
@@ -517,6 +517,5 @@ return [
         ],
     ],
 ];
-
 
 

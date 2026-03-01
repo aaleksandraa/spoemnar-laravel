@@ -208,7 +208,7 @@ return [
         'email' => 'Email',
         'password' => 'Lozinka',
         'password_confirm' => 'Potvrda lozinke',
-        'password_min' => 'Minimum 8 znakova',
+        'password_min' => 'Minimum 12 znakova',
         'remember_me' => 'Zapamti me',
         'need_help' => 'Potrebna pomoc?',
         'login_button' => 'Prijavi se',
@@ -517,6 +517,5 @@ return [
         ],
     ],
 ];
-
 
 

@@ -2,18 +2,27 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\AppliesRequestLocale;
 use App\Support\LocaleResolver;
+use App\Support\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
+    use AppliesRequestLocale;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->applyRequestLocale();
     }
 
     /**
@@ -25,7 +34,7 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email' => 'required|email|unique:users,email|max:255',
-            'password' => ['required', 'string', 'min:12', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'],
+            'password' => PasswordPolicy::validationRules(),
             'password_confirmation' => ['required', 'same:password'],
             'full_name' => 'nullable|string|max:255',
             'locale' => [
@@ -44,14 +53,18 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email address is required.',
-            'email.email' => 'Please provide a valid email address.',
-            'email.unique' => 'This email address is already registered.',
-            'password.required' => 'Password is required.',
-            'password.min' => 'Password must be at least 12 characters long.',
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character (@$!%*?&).',
-            'password_confirmation.required' => 'Password confirmation is required.',
-            'password_confirmation.same' => 'Password confirmation does not match.',
+            'email.required' => __('auth_validation.email.required'),
+            'email.email' => __('auth_validation.email.email'),
+            'email.unique' => __('auth_validation.email.unique'),
+            'email.max' => __('auth_validation.email.max'),
+            'password.required' => __('auth_validation.password.required'),
+            'password.min' => __('auth_validation.password.min'),
+            'password.regex' => __('auth_validation.password.regex'),
+            'password_confirmation.required' => __('auth_validation.password_confirmation.required'),
+            'password_confirmation.same' => __('auth_validation.password_confirmation.same'),
+            'full_name.string' => __('auth_validation.full_name.string'),
+            'full_name.max' => __('auth_validation.full_name.max'),
+            'locale.in' => __('auth_validation.locale.in'),
         ];
     }
 }

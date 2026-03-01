@@ -2,24 +2,16 @@
 
 namespace App\View\Components\Analytics;
 
-use App\Services\Analytics\GTMService;
-use Closure;
-use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Illuminate\View\View;
 
-class GTMHead extends Component
+class GtmHead extends Component
 {
-    public function __construct(
-        public GTMService $gtmService
-    ) {}
-
     /**
      * Get the view / contents that represent the component.
      */
-    public function render(): View|Closure|string
+    public function render(): View
     {
-        return view('components.analytics.gtm-head', [
-            'gtmService' => $this->gtmService,
-        ]);
+        return view('components.analytics.gtm-head');
     }
 }

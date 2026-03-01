@@ -65,6 +65,7 @@
             } else {
                 message.classList.add('border-green-200', 'bg-green-50', 'text-green-700');
             }
+            message.style.whiteSpace = 'pre-line';
             message.textContent = text;
         }
 
@@ -89,7 +90,24 @@
 
                 const data = await response.json();
                 if (!response.ok) {
-                    const errorText = data?.message || (data?.errors ? Object.values(data.errors).flat().join(' ') : @json(__('ui.auth.reset_link_failed')));
+                    let errorText = data?.message || @json(__('ui.auth.reset_link_failed'));
+
+                    if (data?.errors) {
+                        const errorMessages = [];
+                        for (const field in data.errors) {
+                            const fieldErrors = data.errors[field];
+                            if (Array.isArray(fieldErrors)) {
+                                errorMessages.push(...fieldErrors);
+                            } else {
+                                errorMessages.push(fieldErrors);
+                            }
+                        }
+
+                        if (errorMessages.length > 0) {
+                            errorText = '- ' + errorMessages.join('\n- ');
+                        }
+                    }
+
                     showMessage('error', errorText);
                     return;
                 }

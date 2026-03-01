@@ -208,7 +208,7 @@ return [
         'email' => 'E-Mail',
         'password' => 'Passwort',
         'password_confirm' => 'Passwort bestaetigen',
-        'password_min' => 'Mindestens 8 Zeichen',
+        'password_min' => 'Mindestens 12 Zeichen',
         'remember_me' => 'Angemeldet bleiben',
         'need_help' => 'Hilfe benoetigt?',
         'login_button' => 'Anmelden',
@@ -517,6 +517,5 @@ return [
         ],
     ],
 ];
-
 
 
