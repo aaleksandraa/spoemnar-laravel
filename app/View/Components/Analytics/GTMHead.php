@@ -10,7 +10,7 @@ use Illuminate\View\Component;
 class GTMHead extends Component
 {
     public function __construct(
-        private GTMService $gtmService
+        public GTMService $gtmService
     ) {}
 
     /**
