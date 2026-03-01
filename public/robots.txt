@@ -1,0 +1,26 @@
+# Robots.txt for Spomenar Memorial Application
+
+# Allow all user agents to crawl public pages
+User-agent: *
+Allow: /
+
+# Disallow crawling of admin pages
+Disallow: /admin
+Disallow: /*/admin
+
+# Disallow crawling of user account pages
+Disallow: /account
+Disallow: /*/account
+Disallow: /dashboard
+Disallow: /*/dashboard
+Disallow: /create
+Disallow: /*/create
+Disallow: /edit
+Disallow: /*/edit
+
+# Disallow crawling of API endpoints
+Disallow: /api
+Disallow: /*/api
+
+# Sitemap location
+Sitemap: {{SITE_URL}}/sitemap.xml

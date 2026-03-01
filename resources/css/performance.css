@@ -1,0 +1,375 @@
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/*
+ * This file contains CSS optimizations for better performance:
+ * - GPU-accelerated properties
+ * - Minimized specificity
+ * - Optimized animations
+ * - Will-change hints for animations
+ */
+
+@layer utilities {
+  /* ===== GPU ACCELERATION ===== */
+
+  /* Force GPU acceleration for animated elements */
+  .gpu-accelerate {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* GPU-accelerated transforms */
+  .transform-gpu {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* ===== WILL-CHANGE OPTIMIZATION ===== */
+
+  /* Apply will-change to elements that will animate */
+  .will-animate {
+    will-change: transform, opacity;
+  }
+
+  .will-animate-transform {
+    will-change: transform;
+  }
+
+  .will-animate-opacity {
+    will-change: opacity;
+  }
+
+  .will-animate-scroll {
+    will-change: scroll-position;
+  }
+
+  /* Remove will-change after animation completes */
+  .animation-complete {
+    will-change: auto;
+  }
+
+  /* ===== OPTIMIZED TRANSITIONS ===== */
+
+  /* Use transform and opacity for smooth 60fps animations */
+  .transition-optimized {
+    transition: transform var(--transition-base) var(--transition-ease),
+                opacity var(--transition-base) var(--transition-ease);
+  }
+
+  /* Avoid expensive properties in transitions */
+  .transition-safe {
+    transition: transform var(--transition-base) var(--transition-ease);
+  }
+
+  /* ===== CONTAIN OPTIMIZATION ===== */
+
+  /* CSS containment for better rendering performance */
+  .contain-layout {
+    contain: layout;
+  }
+
+  .contain-paint {
+    contain: paint;
+  }
+
+  .contain-size {
+    contain: size;
+  }
+
+  .contain-strict {
+    contain: strict;
+  }
+
+  .contain-content {
+    contain: content;
+  }
+
+  /* ===== LAYER PROMOTION ===== */
+
+  /* Promote elements to their own layer for better compositing */
+  .layer-promote {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* ===== FONT OPTIMIZATION ===== */
+
+  /* Optimize font rendering */
+  .font-optimized {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Disable font smoothing for better performance on low-end devices */
+  @media (max-width: 767px) {
+    .font-performance {
+      -webkit-font-smoothing: subpixel-antialiased;
+      -moz-osx-font-smoothing: auto;
+      text-rendering: optimizeSpeed;
+    }
+  }
+
+  /* ===== IMAGE OPTIMIZATION ===== */
+
+  /* Optimize image rendering */
+  .img-optimized {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  /* Smooth image scaling */
+  .img-smooth {
+    image-rendering: auto;
+  }
+
+  /* ===== SCROLL OPTIMIZATION ===== */
+
+  /* Smooth scrolling with GPU acceleration */
+  .scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+
+  /* Passive scroll for better performance */
+  .scroll-passive {
+    touch-action: pan-y;
+  }
+
+  /* ===== ANIMATION PERFORMANCE ===== */
+
+  /* Optimize animations for 60fps */
+  .animate-60fps {
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Reduce animation complexity on mobile */
+  @media (max-width: 767px) {
+    .animate-mobile-simple {
+      animation-duration: 0.2s !important;
+      animation-timing-function: ease-out !important;
+    }
+  }
+
+  /* ===== PAINT OPTIMIZATION ===== */
+
+  /* Reduce paint areas */
+  .paint-optimized {
+    isolation: isolate;
+  }
+
+  /* Optimize for compositing */
+  .composite-optimized {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* ===== LAYOUT OPTIMIZATION ===== */
+
+  /* Prevent layout thrashing */
+  .layout-stable {
+    content-visibility: auto;
+  }
+
+  /* Optimize for layout calculations */
+  .layout-optimized {
+    contain: layout style;
+  }
+
+  /* ===== CRITICAL CSS PATTERNS ===== */
+
+  /* Above-the-fold content optimization */
+  .critical-content {
+    contain: layout style paint;
+    will-change: auto;
+  }
+
+  /* Below-the-fold lazy loading */
+  .lazy-content {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+  }
+}
+
+/* ===== PERFORMANCE-OPTIMIZED ANIMATIONS ===== */
+
+/* Use transform and opacity only for 60fps animations */
+@keyframes fadeInOptimized {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpOptimized {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scaleInOptimized {
+  from {
+    opacity: 0;
+    transform: scale3d(0.95, 0.95, 1);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+/* ===== REDUCED MOTION SUPPORT ===== */
+
+/* Respect user's motion preferences for accessibility and performance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Remove will-change for reduced motion */
+  .will-animate,
+  .will-animate-transform,
+  .will-animate-opacity {
+    will-change: auto !important;
+  }
+}
+
+/* ===== PERFORMANCE MONITORING ===== */
+
+/* Add performance markers for debugging */
+@supports (content-visibility: auto) {
+  .perf-marker {
+    content-visibility: auto;
+  }
+}
+
+/* ===== BROWSER-SPECIFIC OPTIMIZATIONS ===== */
+
+/* Safari-specific optimizations */
+@supports (-webkit-backdrop-filter: blur(10px)) {
+  .safari-optimized {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+  }
+}
+
+/* Firefox-specific optimizations */
+@-moz-document url-prefix() {
+  .firefox-optimized {
+    transform: translateZ(0);
+  }
+}
+
+/* ===== COMPONENT-SPECIFIC OPTIMIZATIONS ===== */
+
+@layer components {
+  /* Optimized card hover effects */
+  .card-optimized {
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
+    transition: transform var(--transition-base) var(--transition-ease),
+                box-shadow var(--transition-base) var(--transition-ease);
+  }
+
+  .card-optimized:hover {
+    transform: translate3d(0, -4px, 0);
+  }
+
+  /* Remove will-change after hover */
+  .card-optimized:not(:hover) {
+    will-change: auto;
+  }
+
+  /* Optimized button interactions */
+  .btn-optimized {
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform var(--transition-fast) var(--transition-ease);
+  }
+
+  .btn-optimized:active {
+    transform: scale3d(0.98, 0.98, 1);
+  }
+
+  /* Optimized image gallery */
+  .gallery-optimized img {
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform var(--transition-base) var(--transition-ease);
+  }
+
+  .gallery-optimized img:hover {
+    transform: scale3d(1.05, 1.05, 1);
+  }
+
+  /* Optimized modal animations */
+  .modal-optimized {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+
+  /* Optimized scroll animations */
+  .scroll-animate-optimized {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    transition: transform var(--transition-slow) var(--transition-ease),
+                opacity var(--transition-slow) var(--transition-ease);
+  }
+
+  .scroll-animate-optimized.is-visible {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+    will-change: auto;
+  }
+}
+
+/* ===== LOADING PERFORMANCE ===== */
+
+/* Optimize initial page load */
+.loading-optimized {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+/* Defer non-critical content */
+.defer-load {
+  content-visibility: auto;
+}
+
+/* ===== MEMORY OPTIMIZATION ===== */
+
+/* Reduce memory usage for large lists */
+.memory-optimized {
+  contain: strict;
+  content-visibility: auto;
+}
+
+/* ===== PAINT PERFORMANCE ===== */
+
+/* Optimize paint operations */
+.paint-fast {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reduce paint complexity */
+.paint-simple {
+  isolation: isolate;
+  contain: paint;
+}

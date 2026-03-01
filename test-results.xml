@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="C:\Users\aleks\Desktop\Projekti\spomenar\backend\phpunit.xml" tests="1" assertions="1" errors="0" failures="1" skipped="0" time="1.581680">
+    <testsuite name="Feature" tests="1" assertions="1" errors="0" failures="1" skipped="0" time="1.581680">
+      <testsuite name="Tests\Feature\ComprehensiveSecurityHardeningBugConditionTest" file="tests\Feature\ComprehensiveSecurityHardeningBugConditionTest.php" tests="1" assertions="1" errors="0" failures="1" skipped="0" time="1.581680">
+        <testcase name="`8. Search Query DoS Vulnerability` → it accepts search query with 1000 characters without validation error" file="tests\Feature\ComprehensiveSecurityHardeningBugConditionTest.php::`8. Search Query DoS Vulnerability` → it accepts search query with 1000 characters without validation error" class="Tests\Feature\ComprehensiveSecurityHardeningBugConditionTest" classname="Tests.Feature.ComprehensiveSecurityHardeningBugConditionTest" assertions="1" time="1.581680">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">`8. Search Query DoS Vulnerability` → it accepts search query with 1000 characters without validation errorFailed asserting that 500 is identical to 200.&#13;
+at tests\Feature\ComprehensiveSecurityHardeningBugConditionTest.php:1459</failure>
+        </testcase>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

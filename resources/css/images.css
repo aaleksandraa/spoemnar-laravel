@@ -1,0 +1,399 @@
+/* ===== IMAGE OPTIMIZATION STYLES ===== */
+
+/*
+ * This file contains CSS for optimized image loading and display
+ */
+
+/* ===== BASE IMAGE STYLES ===== */
+
+/* Prevent layout shift by reserving space */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Smooth image scaling for high-quality images */
+img.high-quality {
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* ===== LAZY LOADING STYLES ===== */
+
+/* Placeholder for lazy loaded images */
+img[data-src] {
+  background-color: var(--color-muted);
+  background-image: linear-gradient(
+    90deg,
+    var(--color-muted) 0%,
+    var(--color-secondary) 50%,
+    var(--color-muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Fade in when loaded */
+img.lazy-image {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+img.lazy-image.loaded {
+  opacity: 1;
+}
+
+/* ===== RESPONSIVE IMAGE CONTAINERS ===== */
+
+/* Aspect ratio containers to prevent layout shift */
+.img-container {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-muted);
+}
+
+.img-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Common aspect ratios */
+.img-container-square {
+  aspect-ratio: 1 / 1;
+}
+
+.img-container-landscape {
+  aspect-ratio: 4 / 3;
+}
+
+.img-container-portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.img-container-wide {
+  aspect-ratio: 16 / 9;
+}
+
+.img-container-ultra-wide {
+  aspect-ratio: 21 / 9;
+}
+
+/* ===== PICTURE ELEMENT OPTIMIZATION ===== */
+
+picture {
+  display: block;
+  line-height: 0;
+}
+
+picture img {
+  width: 100%;
+  height: auto;
+}
+
+/* ===== PROFILE IMAGES ===== */
+
+.profile-image {
+  border-radius: 50%;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+}
+
+.profile-image-container {
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--color-muted);
+}
+
+/* ===== GALLERY IMAGES ===== */
+
+.gallery-image {
+  cursor: pointer;
+  transition: transform var(--transition-base) var(--transition-ease),
+              box-shadow var(--transition-base) var(--transition-ease);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.gallery-image:hover {
+  transform: scale3d(1.05, 1.05, 1);
+  box-shadow: var(--shadow-lg);
+}
+
+.gallery-image:not(:hover) {
+  will-change: auto;
+}
+
+/* Gallery grid */
+.gallery-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+@media (max-width: 767px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+/* ===== MEMORIAL CARD IMAGES ===== */
+
+.memorial-card-image-container {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background-color: var(--color-muted);
+}
+
+.memorial-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow) var(--transition-ease);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.memorial-card:hover .memorial-card-image {
+  transform: scale3d(1.05, 1.05, 1);
+}
+
+.memorial-card:not(:hover) .memorial-card-image {
+  will-change: auto;
+}
+
+/* ===== HERO IMAGES ===== */
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-image-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 400px;
+  background-color: var(--color-muted);
+}
+
+@media (min-width: 768px) {
+  .hero-image-container {
+    min-height: 500px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-image-container {
+    min-height: 600px;
+  }
+}
+
+/* ===== THUMBNAIL IMAGES ===== */
+
+.thumbnail {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.thumbnail-sm {
+  width: 60px;
+  height: 60px;
+}
+
+.thumbnail-lg {
+  width: 150px;
+  height: 150px;
+}
+
+/* ===== IMAGE LOADING STATES ===== */
+
+/* Loading spinner for images */
+.img-loading {
+  position: relative;
+}
+
+.img-loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  z-index: 1;
+}
+
+/* Error state for failed images */
+.img-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-muted);
+  color: var(--color-muted-foreground);
+  min-height: 200px;
+}
+
+.img-error::before {
+  content: '⚠️ Image failed to load';
+  font-size: var(--font-size-sm);
+}
+
+/* ===== PROGRESSIVE IMAGE LOADING ===== */
+
+/* Blur-up technique for progressive loading */
+.img-progressive {
+  position: relative;
+}
+
+.img-progressive-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(20px);
+  transform: scale(1.1);
+  transition: opacity 0.3s ease-in-out;
+}
+
+.img-progressive-full {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.img-progressive.loaded .img-progressive-placeholder {
+  opacity: 0;
+}
+
+.img-progressive.loaded .img-progressive-full {
+  opacity: 1;
+}
+
+/* ===== WEBP SUPPORT DETECTION ===== */
+
+/* Fallback styles for browsers without WebP support */
+.no-webp .webp-only {
+  display: none;
+}
+
+/* ===== PRINT OPTIMIZATION ===== */
+
+@media print {
+  /* Optimize images for print */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Hide decorative images */
+  .img-decorative {
+    display: none;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+/* Hide decorative images from screen readers */
+img[alt=""],
+img[role="presentation"] {
+  /* Decorative images should have empty alt text */
+}
+
+/* Ensure images have proper contrast */
+img {
+  background-color: var(--color-background);
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+/* Contain paint for better performance */
+.img-optimized {
+  contain: paint;
+  content-visibility: auto;
+}
+
+/* GPU acceleration for image transforms */
+.img-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ===== DARK MODE ADJUSTMENTS ===== */
+
+.dark img {
+  /* Slightly reduce brightness in dark mode */
+  filter: brightness(0.9);
+}
+
+.dark .profile-image,
+.dark .memorial-card-image {
+  /* Don't dim profile and memorial images */
+  filter: none;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+
+@media (max-width: 767px) {
+  /* Reduce image quality on mobile for performance */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  /* Smaller thumbnails on mobile */
+  .thumbnail {
+    width: 80px;
+    height: 80px;
+  }
+
+  /* Adjust gallery grid for mobile */
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable image animations */
+  .gallery-image,
+  .memorial-card-image,
+  .lazy-image {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Remove shimmer effect */
+  img[data-src] {
+    animation: none;
+  }
+}
