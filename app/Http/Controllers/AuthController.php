@@ -86,6 +86,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user->load('profile', 'roles'),
+            'token' => $token,
         ], 201)->cookie('auth_token', $token, 60 * 24 * 60, '/', null, true, true, false, 'strict');
     }
 
@@ -111,6 +112,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user->load('profile', 'roles'),
+            'token' => $token,
         ])->cookie('auth_token', $token, 60 * 24 * 60, '/', null, true, true, false, 'strict');
     }
 
@@ -243,6 +245,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user->load('profile', 'roles'),
+            'token' => $token,
         ])->cookie('auth_token', $token, 60 * 24 * 60, '/', null, true, true, false, 'strict');
     }
 

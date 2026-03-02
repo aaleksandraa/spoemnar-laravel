@@ -236,6 +236,17 @@
                     return;
                 }
 
+                const authToken = typeof data?.token === 'string' ? data.token.trim() : '';
+                if (authToken === '') {
+                    showMessage('error', @json(__('ui.auth.register_failed')));
+                    return;
+                }
+
+                localStorage.setItem('auth_token', authToken);
+                if (data?.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
+
                 // Track successful registration
                 if (window.eventTracker) {
                     window.eventTracker.trackSignUp({

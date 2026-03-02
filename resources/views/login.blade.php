@@ -122,6 +122,17 @@
                     return;
                 }
 
+                const authToken = typeof data?.token === 'string' ? data.token.trim() : '';
+                if (authToken === '') {
+                    showMessage('error', @json(__('ui.auth.login_failed')));
+                    return;
+                }
+
+                localStorage.setItem('auth_token', authToken);
+                if (data?.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
+
                 showMessage('success', @json(__('ui.auth.login_success')));
                 setTimeout(() => {
                     window.location.href = @json(route('dashboard'));
