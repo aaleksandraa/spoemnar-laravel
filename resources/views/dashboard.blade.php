@@ -292,7 +292,7 @@
                 userEl.classList.remove('hidden');
                 userEl.textContent = me.email || '';
 
-                const memorialsResponse = await apiRequest('/api/v1/memorials?per_page=100');
+                const memorialsResponse = await apiRequest('/api/v1/memorials?per_page=100&mine=1');
                 const memorials = Array.isArray(memorialsResponse?.data) ? memorialsResponse.data : [];
                 renderMemorials(memorials);
             } catch (error) {

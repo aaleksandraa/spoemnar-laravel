@@ -27,6 +27,7 @@ class PaginationRequest extends FormRequest
             'page' => ['nullable', 'integer', 'min:1'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'mine' => ['nullable', 'boolean'],
         ];
     }
 

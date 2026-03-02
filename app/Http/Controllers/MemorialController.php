@@ -29,11 +29,47 @@ class MemorialController extends Controller
         $validated = $request->validated();
         $perPage = $validated['perPage'] ?? $validated['per_page'] ?? 15;
         $isPublic = $request->input('isPublic');
+        $mineOnly = filter_var($request->input('mine'), FILTER_VALIDATE_BOOLEAN);
 
         $query = Memorial::query();
 
         $user = $request->user();
         $isAdmin = $user && ($user->roles()->where('role', 'admin')->exists() || (string) $user->role === 'admin');
+
+        if ($mineOnly) {
+            if (!$user) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->where('user_id', $user->id);
+            }
+
+            if ($isPublic !== null) {
+                $query->where('is_public', filter_var($isPublic, FILTER_VALIDATE_BOOLEAN));
+            }
+
+            $memorials = $query
+                ->with(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity'])
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+
+            $transformedData = MemorialResource::collection($memorials->items())->toArray($request);
+
+            return response()->json([
+                'data' => $transformedData,
+                'current_page' => $memorials->currentPage(),
+                'last_page' => $memorials->lastPage(),
+                'per_page' => $memorials->perPage(),
+                'total' => $memorials->total(),
+                'from' => $memorials->firstItem(),
+                'to' => $memorials->lastItem(),
+                'first_page_url' => $memorials->url(1),
+                'last_page_url' => $memorials->url($memorials->lastPage()),
+                'next_page_url' => $memorials->nextPageUrl(),
+                'prev_page_url' => $memorials->previousPageUrl(),
+                'path' => $memorials->path(),
+                'links' => $memorials->linkCollection()->toArray(),
+            ]);
+        }
 
         // Admin users can see all memorials
         if ($isAdmin) {
