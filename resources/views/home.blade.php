@@ -67,58 +67,66 @@
 
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <article class="border border-border/50 hover:shadow-elegant hover:border-accent/30 transition-all duration-300 group bg-card/50 backdrop-blur-sm rounded-lg">
-                    <div class="pt-8 pb-6 px-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-accent flex items-center justify-center mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-7 h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="pt-6 pb-6 px-5 flex items-start gap-4 md:pt-8 md:px-6 md:block">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-accent flex items-center justify-center mb-0 md:mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300 shrink-0">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h4V3H4v4zm6 14h4v-4h-4v4zm-6 0h4v-4H4v4zm12 0h4v-4h-4v4zm0-10h4V7h-4v4zm0-8v2m-8 0V3m-2 8h12M5 21h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <h3 class="font-serif font-semibold text-xl mb-3 text-foreground">{{ __('ui.home.feature_1_title') }}</h3>
-                        <p class="text-muted-foreground leading-relaxed">
-                            {{ __('ui.home.feature_1_desc') }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-serif font-semibold text-lg md:text-xl mb-2 md:mb-3 text-foreground">{{ __('ui.home.feature_1_title') }}</h3>
+                            <p class="text-muted-foreground leading-relaxed">
+                                {{ __('ui.home.feature_1_desc') }}
+                            </p>
+                        </div>
                     </div>
                 </article>
 
                 <article class="border border-border/50 hover:shadow-elegant hover:border-accent/30 transition-all duration-300 group bg-card/50 backdrop-blur-sm rounded-lg">
-                    <div class="pt-8 pb-6 px-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-accent flex items-center justify-center mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-7 h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="pt-6 pb-6 px-5 flex items-start gap-4 md:pt-8 md:px-6 md:block">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-accent flex items-center justify-center mb-0 md:mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300 shrink-0">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
                         </div>
-                        <h3 class="font-serif font-semibold text-xl mb-3 text-foreground">{{ __('ui.home.feature_2_title') }}</h3>
-                        <p class="text-muted-foreground leading-relaxed">
-                            {{ __('ui.home.feature_2_desc') }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-serif font-semibold text-lg md:text-xl mb-2 md:mb-3 text-foreground">{{ __('ui.home.feature_2_title') }}</h3>
+                            <p class="text-muted-foreground leading-relaxed">
+                                {{ __('ui.home.feature_2_desc') }}
+                            </p>
+                        </div>
                     </div>
                 </article>
 
                 <article class="border border-border/50 hover:shadow-elegant hover:border-accent/30 transition-all duration-300 group bg-card/50 backdrop-blur-sm rounded-lg">
-                    <div class="pt-8 pb-6 px-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-accent flex items-center justify-center mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-7 h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="pt-6 pb-6 px-5 flex items-start gap-4 md:pt-8 md:px-6 md:block">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-accent flex items-center justify-center mb-0 md:mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300 shrink-0">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                             </svg>
                         </div>
-                        <h3 class="font-serif font-semibold text-xl mb-3 text-foreground">{{ __('ui.home.feature_3_title') }}</h3>
-                        <p class="text-muted-foreground leading-relaxed">
-                            {{ __('ui.home.feature_3_desc') }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-serif font-semibold text-lg md:text-xl mb-2 md:mb-3 text-foreground">{{ __('ui.home.feature_3_title') }}</h3>
+                            <p class="text-muted-foreground leading-relaxed">
+                                {{ __('ui.home.feature_3_desc') }}
+                            </p>
+                        </div>
                     </div>
                 </article>
 
                 <article class="border border-border/50 hover:shadow-elegant hover:border-accent/30 transition-all duration-300 group bg-card/50 backdrop-blur-sm rounded-lg">
-                    <div class="pt-8 pb-6 px-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-accent flex items-center justify-center mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-7 h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="pt-6 pb-6 px-5 flex items-start gap-4 md:pt-8 md:px-6 md:block">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-accent flex items-center justify-center mb-0 md:mb-5 shadow-gold group-hover:scale-110 transition-transform duration-300 shrink-0">
+                            <svg class="w-6 h-6 md:w-7 md:h-7 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.178 8.586a4 4 0 00-5.656 0L12 9.107l-.522-.521a4 4 0 10-5.656 5.656l.522.522L12 20.42l5.656-5.656.522-.522a4 4 0 000-5.656z" />
                             </svg>
                         </div>
-                        <h3 class="font-serif font-semibold text-xl mb-3 text-foreground">{{ __('ui.home.feature_4_title') }}</h3>
-                        <p class="text-muted-foreground leading-relaxed">
-                            {{ __('ui.home.feature_4_desc') }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-serif font-semibold text-lg md:text-xl mb-2 md:mb-3 text-foreground">{{ __('ui.home.feature_4_title') }}</h3>
+                            <p class="text-muted-foreground leading-relaxed">
+                                {{ __('ui.home.feature_4_desc') }}
+                            </p>
+                        </div>
                     </div>
                 </article>
             </div>
