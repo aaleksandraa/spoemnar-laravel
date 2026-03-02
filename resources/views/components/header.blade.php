@@ -166,37 +166,40 @@
 
     <div x-show="mobileMenuOpen" x-transition.opacity.duration.200ms class="md:hidden fixed inset-0 z-40">
         <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="mobileMenuOpen = false"></div>
-        <div class="absolute left-3 right-3 top-[68px] rounded-2xl border shadow-2xl {{ $mobileMenuPanelClass }}">
+        <div class="absolute inset-x-0 top-[64px] rounded-none border-b shadow-2xl {{ $mobileMenuPanelClass }}">
             <nav
                 class="max-h-[calc(100vh-84px)] overflow-y-auto p-4 space-y-4"
                 aria-label="Mobile navigation"
                 @click="if ($event.target.closest('a')) { mobileMenuOpen = false }"
             >
-                <div class="space-y-1">
-                <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
+                <div class="grid grid-cols-2 gap-2">
+                <a href="{{ route('home') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     <span>{{ __('ui.nav.home') }}</span>
                 </a>
-                <a href="{{ route('about') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
+                <a href="{{ route('about') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <span>{{ __('ui.nav.about') }}</span>
                 </a>
-                <a href="{{ route('contact') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
+                <a href="{{ route('contact') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                     <span>{{ __('ui.nav.contact') }}</span>
                 </a>
-                <a href="{{ route('search.page') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
+                <a href="{{ route('search.page') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                     <span>{{ __('ui.home.search_tab') }}</span>
                 </a>
+                </div>
+
+                <div class="space-y-1">
                 <a href="{{ route('memorial.create') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -218,7 +221,7 @@
                 </a>
                 </div>
 
-                <div id="headerGuestMobileActions" class="pt-4 mt-2 border-t {{ $headerBorderClass }} space-y-2">
+                <div id="headerGuestMobileActions" class="pt-4 mt-2 border-t {{ $headerBorderClass }} grid grid-cols-2 gap-2">
                 <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.auth.login_title') }}
                 </a>
