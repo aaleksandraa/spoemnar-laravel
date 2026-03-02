@@ -52,7 +52,6 @@
     $buttonBorderClass = $isTransparent ? 'border-white/30 text-white hover:bg-white/10' : 'border-border hover:bg-muted';
     $isCompactAuthLocale = in_array($currentLocale, ['de', 'it'], true);
     $desktopLoginVisibilityClass = $isCompactAuthLocale ? 'hidden 2xl:inline-flex' : 'hidden xl:inline-flex';
-    $mobileLoginVisibilityClass = $isCompactAuthLocale ? 'hidden' : 'hidden min-[390px]:inline-flex';
     $mobileMenuPanelClass = $isTransparent
         ? 'bg-black/90 border-white/20 text-white'
         : 'bg-card/95 border-border text-foreground';
@@ -177,27 +176,6 @@
                 aria-label="Mobile navigation"
                 @click="if ($event.target.closest('a')) { mobileMenuOpen = false }"
             >
-                <div class="rounded-xl border {{ $headerBorderClass }} p-1">
-                    <button
-                        @click="toggleTheme()"
-                        class="w-full flex items-center justify-between gap-3 px-3 py-3 rounded-lg transition-colors {{ $mobileItemHoverClass }} {{ $textClass }}"
-                        aria-label="{{ __('ui.theme.toggle_dark_mode') }}"
-                    >
-                        <span class="inline-flex items-center gap-3">
-                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full {{ $isTransparent ? 'bg-white/15' : 'bg-muted' }}">
-                                <svg class="w-4 h-4 hidden dark:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                </svg>
-                                <svg class="w-4 h-4 block dark:hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                                </svg>
-                            </span>
-                            <span class="text-sm font-semibold">{{ __('ui.theme.toggle_dark_mode') }}</span>
-                        </span>
-                        <span class="text-[11px] uppercase tracking-wide opacity-70" x-text="isDark ? 'Dark' : 'Light'"></span>
-                    </button>
-                </div>
-
                 <div class="space-y-1">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -248,7 +226,7 @@
                 <div class="px-3 mb-2">
                     <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ $accountLabel }}</span>
                 </div>
-                <a href="{{ route('login') }}" class="{{ $mobileLoginVisibilityClass }} items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
+                <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.auth.login_title') }}
                 </a>
                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg bg-gradient-accent text-accent-foreground shadow-gold hover:opacity-90 transition-opacity text-sm font-medium">
@@ -288,6 +266,27 @@
                         </a>
                     @endforeach
                 </div>
+                </div>
+
+                <div class="pt-4 mt-2 border-t {{ $headerBorderClass }}">
+                    <button
+                        @click="toggleTheme()"
+                        class="w-full flex items-center justify-between gap-3 px-3 py-3 rounded-lg transition-colors {{ $mobileItemHoverClass }} {{ $textClass }}"
+                        aria-label="{{ __('ui.theme.toggle_dark_mode') }}"
+                    >
+                        <span class="inline-flex items-center gap-3">
+                            <span class="inline-flex h-8 w-8 items-center justify-center rounded-full {{ $isTransparent ? 'bg-white/15' : 'bg-muted' }}">
+                                <svg class="w-4 h-4 hidden dark:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <svg class="w-4 h-4 block dark:hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                </svg>
+                            </span>
+                            <span class="text-sm font-semibold">{{ __('ui.theme.toggle_dark_mode') }}</span>
+                        </span>
+                        <span class="text-[11px] uppercase tracking-wide opacity-70" x-text="isDark ? 'Dark' : 'Light'"></span>
+                    </button>
                 </div>
             </nav>
         </div>
