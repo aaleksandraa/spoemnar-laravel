@@ -219,11 +219,11 @@
                 </a>
                 </div>
 
-                <div id="headerGuestMobileActions" class="pt-4 mt-2 border-t {{ $headerBorderClass }} grid grid-cols-2 gap-2">
-                <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
+                <div id="headerGuestMobileActions" class="w-full pt-4 mt-2 border-t {{ $headerBorderClass }} grid grid-cols-2 gap-2">
+                <a href="{{ route('login') }}" class="inline-flex items-center justify-center min-w-0 w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.auth.login_title') }}
                 </a>
-                <a href="{{ route('register') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg bg-gradient-accent text-accent-foreground shadow-gold hover:opacity-90 transition-opacity text-sm font-medium">
+                <a href="{{ route('register') }}" class="inline-flex items-center justify-center min-w-0 w-full px-4 h-11 rounded-lg bg-gradient-accent text-accent-foreground shadow-gold hover:opacity-90 transition-opacity text-sm font-medium">
                     {{ __('ui.auth.register_title') }}
                 </a>
                 </div>
@@ -298,7 +298,7 @@
         const adminNavMobile = Array.from(document.querySelectorAll('[data-admin-nav-mobile]'));
         const logoutButtons = Array.from(document.querySelectorAll('[data-logout-btn]'));
 
-        function setVisibility(elements, visible, displayClass = 'inline-flex') {
+        function setVisibility(elements, visible, displayClass = null) {
             elements.forEach((element) => {
                 if (!element) {
                     return;
@@ -377,7 +377,7 @@
 
         if (!token) {
             setVisibility([guestDesktop], true, 'md:flex');
-            setVisibility([guestMobile], true);
+            setVisibility([guestMobile], true, 'block');
             return;
         }
 
@@ -387,11 +387,11 @@
             }
 
             setVisibility([authDesktop], true, 'md:flex');
-            setVisibility([authMobile], true);
+            setVisibility([authMobile], true, 'block');
             setVisibility(authNavDesktop, true, 'inline');
             setVisibility(authNavMobile, true, 'block');
             setVisibility([guestDesktop], false, 'md:flex');
-            setVisibility([guestMobile], false);
+            setVisibility([guestMobile], false, 'block');
 
             const admin = isAdminUser(user);
             if (admin) {
@@ -404,7 +404,7 @@
                 localStorage.removeItem('user');
             }
             setVisibility([guestDesktop], true, 'md:flex');
-            setVisibility([guestMobile], true);
+            setVisibility([guestMobile], true, 'block');
         });
     });
 </script>
