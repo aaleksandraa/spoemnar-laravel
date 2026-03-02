@@ -164,11 +164,9 @@
         </div>
     </div>
 
-    <div x-show="mobileMenuOpen" x-transition.opacity.duration.200ms class="md:hidden fixed inset-0 z-40">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]" @click="mobileMenuOpen = false"></div>
-        <div class="absolute inset-x-0 top-[64px] rounded-none border-b shadow-2xl {{ $mobileMenuPanelClass }}">
+    <div x-show="mobileMenuOpen" x-transition class="md:hidden border-t {{ $mobileMenuPanelClass }}">
             <nav
-                class="max-h-[calc(100vh-84px)] overflow-y-auto p-4 space-y-4"
+                class="container mx-auto px-4 py-4 space-y-4"
                 aria-label="Mobile navigation"
                 @click="if ($event.target.closest('a')) { mobileMenuOpen = false }"
             >
@@ -282,7 +280,6 @@
                     </button>
                 </div>
             </nav>
-        </div>
     </div>
 </header>
 
