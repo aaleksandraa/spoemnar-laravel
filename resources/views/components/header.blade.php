@@ -56,10 +56,6 @@
         ? 'bg-black/90 border-white/20 text-white'
         : 'bg-card/95 border-border text-foreground';
     $mobileItemHoverClass = $isTransparent ? 'hover:bg-white/10' : 'hover:bg-muted';
-    $accountLabel = __('ui.nav.account');
-    if ($accountLabel === 'ui.nav.account') {
-        $accountLabel = 'Account';
-    }
 @endphp
 
 <header
@@ -223,9 +219,6 @@
                 </div>
 
                 <div id="headerGuestMobileActions" class="pt-4 mt-2 border-t {{ $headerBorderClass }} space-y-2">
-                <div class="px-3 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ $accountLabel }}</span>
-                </div>
                 <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.auth.login_title') }}
                 </a>
@@ -235,9 +228,6 @@
                 </div>
 
                 <div id="headerAuthMobileActions" class="hidden pt-4 mt-2 border-t {{ $headerBorderClass }} space-y-2">
-                <div class="px-3 mb-2">
-                    <span class="text-xs font-semibold uppercase tracking-wider {{ $textClass }} opacity-60">{{ $accountLabel }}</span>
-                </div>
                 <button type="button" data-logout-btn class="w-full inline-flex items-center justify-center px-4 h-11 rounded-lg border text-sm font-medium transition-colors {{ $buttonBorderClass }} {{ $textClass }} {{ $mobileItemHoverClass }}">
                     {{ __('ui.nav.logout') }}
                 </button>
