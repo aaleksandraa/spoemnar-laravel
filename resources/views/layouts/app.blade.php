@@ -118,6 +118,9 @@
     {{-- GTM Head Script --}}
     <x-analytics.gtm-head />
 
+    {{-- GA4 Direct Script (fallback when GTM is not active) --}}
+    <x-analytics.ga4-head />
+
     <script>
         (function () {
             try {

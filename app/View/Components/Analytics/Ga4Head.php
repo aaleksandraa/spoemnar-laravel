@@ -2,14 +2,14 @@
 
 namespace App\View\Components\Analytics;
 
-use App\Services\Analytics\GTMService;
+use App\Services\Analytics\GA4Service;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-class GTMBody extends Component
+class Ga4Head extends Component
 {
     public function __construct(
-        public GTMService $gtmService
+        public GA4Service $ga4Service
     ) {}
 
     /**
@@ -17,8 +17,8 @@ class GTMBody extends Component
      */
     public function render(): View
     {
-        return view('components.analytics.gtm-body', [
-            'gtmService' => $this->gtmService,
+        return view('components.analytics.ga4-head', [
+            'ga4Service' => $this->ga4Service,
         ]);
     }
 }

@@ -42,7 +42,7 @@ class DataLayerService
         // Map route names to page types
         return match (true) {
             $routeName === 'home' => 'home',
-            str_starts_with($routeName, 'memorials.') => 'memorial',
+            str_starts_with($routeName, 'memorial.') => 'memorial',
             str_starts_with($routeName, 'search') => 'search',
             str_starts_with($routeName, 'contact') => 'contact',
             str_starts_with($routeName, 'about') => 'about',

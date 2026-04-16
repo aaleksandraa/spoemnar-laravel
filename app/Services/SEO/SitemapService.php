@@ -4,8 +4,8 @@ namespace App\Services\SEO;
 
 use App\Models\Memorial;
 use App\Support\LocaleResolver;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Route;
 
 class SitemapService
 {
@@ -28,30 +28,39 @@ class SitemapService
         ];
 
         // Add static pages
-        $staticPages = ['about', 'contact', 'search.page', 'privacy', 'terms'];
+        $staticPages = [
+            ['route' => 'about', 'type' => 'static'],
+            ['route' => 'contact', 'type' => 'static'],
+            ['route' => 'search.page', 'type' => 'search'],
+            ['route' => 'privacy', 'type' => 'static'],
+            ['route' => 'terms', 'type' => 'static'],
+        ];
         foreach ($staticPages as $page) {
             $urls[] = [
-                'loc' => route($page, ['locale' => $locale]),
-                'lastmod' => $this->getLastModForStaticPage($page),
-                'changefreq' => $this->getChangeFreq('static'),
-                'priority' => $this->getPriority('static'),
+                'loc' => route($page['route'], ['locale' => $locale]),
+                'lastmod' => $this->getLastModForStaticPage($page['route']),
+                'changefreq' => $this->getChangeFreq($page['type']),
+                'priority' => $this->getPriority($page['type']),
             ];
         }
 
-        // Add memorial profiles
-        $memorials = Memorial::where('is_public', true)
-            ->select(['slug', 'updated_at'])
-            ->orderByDesc('updated_at')
-            ->get();
-
-        foreach ($memorials as $memorial) {
-            $urls[] = [
-                'loc' => route('memorial.profile', ['locale' => $locale, 'slug' => $memorial->slug]),
-                'lastmod' => $memorial->updated_at?->toAtomString() ?? now()->toAtomString(),
-                'changefreq' => $this->getChangeFreq('memorial'),
-                'priority' => $this->getPriority('memorial'),
-            ];
-        }
+        // Add public memorial profiles in chunks to keep memory usage stable.
+        Memorial::query()
+            ->where('is_public', true)
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '')
+            ->select(['id', 'slug', 'updated_at'])
+            ->orderBy('id')
+            ->chunkById(500, function ($memorials) use (&$urls, $locale): void {
+                foreach ($memorials as $memorial) {
+                    $urls[] = [
+                        'loc' => route('memorial.profile', ['locale' => $locale, 'slug' => $memorial->slug]),
+                        'lastmod' => $memorial->updated_at?->toAtomString() ?? now()->toAtomString(),
+                        'changefreq' => $this->getChangeFreq('memorial'),
+                        'priority' => $this->getPriority('memorial'),
+                    ];
+                }
+            });
 
         return $this->generateXml($urls);
     }
@@ -65,11 +74,12 @@ class SitemapService
     {
         $locales = LocaleResolver::supportedLocales();
         $sitemaps = [];
+        $lastmod = $this->resolveSitemapIndexLastmod();
 
         foreach ($locales as $locale) {
             $sitemaps[] = [
                 'loc' => route('sitemap.locale', ['locale' => $locale]),
-                'lastmod' => now()->toAtomString(),
+                'lastmod' => $lastmod,
             ];
         }
 
@@ -178,6 +188,29 @@ class SitemapService
         }
 
         return gmdate(DATE_ATOM, $latestTimestamp);
+    }
+
+    /**
+     * Resolve last modification timestamp for sitemap index.
+     *
+     * Uses latest public memorial update when available, otherwise falls back
+     * to the latest static-page change.
+     */
+    private function resolveSitemapIndexLastmod(): string
+    {
+        $latestMemorialUpdate = Memorial::query()
+            ->where('is_public', true)
+            ->max('updated_at');
+
+        if (is_string($latestMemorialUpdate) && $latestMemorialUpdate !== '') {
+            return Carbon::parse($latestMemorialUpdate)->toAtomString();
+        }
+
+        if ($latestMemorialUpdate instanceof Carbon) {
+            return $latestMemorialUpdate->toAtomString();
+        }
+
+        return $this->getLastModForStaticPage('home');
     }
 
     /**

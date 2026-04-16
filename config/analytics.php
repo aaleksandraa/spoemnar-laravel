@@ -3,6 +3,16 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Global Analytics Toggle
+    |--------------------------------------------------------------------------
+    |
+    | Master switch for analytics integrations (GTM and/or GA4).
+    |
+    */
+    'enabled' => env('ANALYTICS_ENABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Google Tag Manager Configuration
     |--------------------------------------------------------------------------
     |
@@ -29,7 +39,10 @@ return [
     |
     */
     'ga4' => [
+        'enabled' => env('ANALYTICS_ENABLED', false),
         'measurement_id' => env('GA4_MEASUREMENT_ID'),
+        'use_direct_script' => env('GA4_USE_DIRECT_SCRIPT', true),
+        'send_page_view' => env('GA4_SEND_PAGE_VIEW', false),
         'debug_mode' => env('ANALYTICS_DEBUG_MODE', false),
     ],
 

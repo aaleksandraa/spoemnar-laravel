@@ -24,6 +24,8 @@ return [
     */
     'search_console' => [
         'verification' => env('GOOGLE_SEARCH_CONSOLE_VERIFICATION'),
+        'file_token' => env('GOOGLE_SEARCH_CONSOLE_FILE_TOKEN'),
+        'file_content' => env('GOOGLE_SEARCH_CONSOLE_FILE_CONTENT'),
     ],
 
     /*

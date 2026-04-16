@@ -368,6 +368,22 @@ Route::get('/sitemap-{locale}.xml', [\App\Http\Controllers\SitemapController::cl
 // Event tracking validation (non-production only)
 Route::get('/analytics/validation', [\App\Http\Controllers\EventTrackingValidationController::class, 'index'])->name('analytics.validation');
 
+// Google Search Console verification via HTML file token
+Route::get('/google{token}.html', static function (string $token) {
+    $configuredToken = trim((string) config('seo.search_console.file_token', ''));
+
+    if ($configuredToken === '' || !hash_equals($configuredToken, $token)) {
+        abort(404);
+    }
+
+    $configuredContent = trim((string) config('seo.search_console.file_content', ''));
+    $content = $configuredContent !== ''
+        ? $configuredContent
+        : "google-site-verification: google{$configuredToken}.html";
+
+    return response($content, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+})->where('token', '[A-Za-z0-9_-]+')->name('search.console.verification');
+
 Route::get('/robots.txt', static function () {
     $content = file_get_contents(public_path('robots.txt'));
     $content = str_replace('{{SITE_URL}}', url('/'), $content);
