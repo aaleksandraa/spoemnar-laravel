@@ -91,6 +91,7 @@ class StructuredDataServiceTest extends TestCase
     {
         Config::set('seo.site.name', 'Spomenar');
         Config::set('seo.site.url', 'https://example.com');
+        app()->setLocale('en');
 
         $schema = $this->service->generateWebSiteSchema();
 
@@ -98,12 +99,12 @@ class StructuredDataServiceTest extends TestCase
         $this->assertEquals('https://schema.org', $schema['@context']);
         $this->assertEquals('WebSite', $schema['@type']);
         $this->assertEquals('Spomenar', $schema['name']);
-        $this->assertEquals('https://example.com', $schema['url']);
+        $this->assertEquals('https://example.com/en', $schema['url']);
         $this->assertArrayHasKey('potentialAction', $schema);
         $this->assertEquals('SearchAction', $schema['potentialAction']['@type']);
         $this->assertArrayHasKey('target', $schema['potentialAction']);
         $this->assertEquals('EntryPoint', $schema['potentialAction']['target']['@type']);
-        $this->assertEquals('https://example.com/search?q={search_term_string}', $schema['potentialAction']['target']['urlTemplate']);
+        $this->assertEquals('https://example.com/en/search?q={search_term_string}', $schema['potentialAction']['target']['urlTemplate']);
         $this->assertEquals('required name=search_term_string', $schema['potentialAction']['query-input']);
     }
 
@@ -115,11 +116,9 @@ class StructuredDataServiceTest extends TestCase
         $memorial->birth_date = now()->subYears(70)->startOfDay();
         $memorial->death_date = now()->subYear()->startOfDay();
         $memorial->biography = '<p>Loving father and dedicated teacher who touched many lives.</p>';
-
-        // Create a mock object for primaryPhoto with url property
-        $photo = new \stdClass();
-        $photo->url = 'https://example.com/photos/john-doe.jpg';
-        $memorial->setRelation('primaryPhoto', $photo);
+        $memorial->slug = 'john-doe';
+        $memorial->profile_image_url = 'https://example.com/photos/john-doe.jpg';
+        app()->setLocale('en');
 
         $schema = $this->service->generatePersonSchema($memorial);
 
@@ -130,6 +129,7 @@ class StructuredDataServiceTest extends TestCase
         $this->assertEquals($memorial->birth_date->format('Y-m-d'), $schema['birthDate']);
         $this->assertEquals($memorial->death_date->format('Y-m-d'), $schema['deathDate']);
         $this->assertEquals('https://example.com/photos/john-doe.jpg', $schema['image']);
+        $this->assertEquals('http://localhost/en/profil/john-doe', $schema['url']);
         $this->assertArrayHasKey('description', $schema);
         $this->assertStringNotContainsString('<p>', $schema['description']);
         $this->assertStringNotContainsString('</p>', $schema['description']);

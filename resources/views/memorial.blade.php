@@ -26,6 +26,8 @@
 @section('meta_description', $memorialSeoDescription)
 @section('og_title', __('ui.memorial.seo_profile_title', ['name' => $memorialFullName]))
 @section('og_description', $memorialSeoDescription)
+@section('og_image', $profileImageUrl ?: config('seo.meta.default_og_image', '/spomenar-pozadina.jpg'))
+@section('og_image_alt', $memorialFullName)
 
 @section('head')
     {{-- Person Structured Data --}}

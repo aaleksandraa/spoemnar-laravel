@@ -145,6 +145,7 @@ return [
 
     'about' => [
         'title' => 'About us',
+        'meta_description' => 'Learn how Spomenar helps families preserve memories through digital memorials, galleries and tribute messages.',
         'page_title' => 'About Spomenar',
         'hero_desc' => 'A modern platform that helps families preserve memories of loved ones.',
         'mission_label' => 'Our mission',
@@ -169,6 +170,7 @@ return [
 
     'contact' => [
         'title' => 'Contact',
+        'meta_description' => 'Contact Spomenar for support, questions and suggestions related to digital memorials and user accounts.',
         'page_title' => 'Contact us',
         'hero_desc' => 'Send a question, suggestion, or idea. We reply as soon as possible.',
         'form_title' => 'Send a message',
@@ -517,5 +519,4 @@ return [
         ],
     ],
 ];
-
 

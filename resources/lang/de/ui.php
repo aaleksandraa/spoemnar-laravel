@@ -145,6 +145,7 @@ return [
 
     'about' => [
         'title' => 'Ueber uns',
+        'meta_description' => 'Erfahren Sie, wie Spomenar Familien dabei hilft, Erinnerungen durch digitale Gedenkseiten, Galerien und Nachrichten zu bewahren.',
         'page_title' => 'Ueber Spomenar',
         'hero_desc' => 'Eine moderne Plattform, die Familien hilft, Erinnerungen zu bewahren.',
         'mission_label' => 'Unsere Mission',
@@ -169,6 +170,7 @@ return [
 
     'contact' => [
         'title' => 'Kontakt',
+        'meta_description' => 'Kontaktieren Sie Spomenar fuer Support, Fragen und Vorschlaege rund um digitale Gedenkseiten und Benutzerkonten.',
         'page_title' => 'Kontaktieren Sie uns',
         'hero_desc' => 'Senden Sie Fragen, Vorschlaege oder Ideen. Wir antworten schnell.',
         'form_title' => 'Nachricht senden',
@@ -517,5 +519,4 @@ return [
         ],
     ],
 ];
-
 

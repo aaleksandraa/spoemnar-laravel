@@ -61,15 +61,23 @@
         };
 
         $canonicalUrl = $localizedUrl($currentLocale);
+        $socialImage = trim((string) $__env->yieldContent('og_image', config('seo.meta.default_og_image', '/spomenar-pozadina.jpg')));
+        if ($socialImage === '') {
+            $socialImage = config('seo.meta.default_og_image', '/spomenar-pozadina.jpg');
+        }
+        if (!filter_var($socialImage, FILTER_VALIDATE_URL)) {
+            $socialImage = url($socialImage);
+        }
+        $socialImageAlt = trim((string) $__env->yieldContent('og_image_alt', __('ui.meta.default_title')));
+        $twitterHandle = trim((string) config('seo.social.twitter_handle', ''));
+        $customSeoMetaTags = trim((string) $__env->yieldPushContent('seo-meta-tags'));
     @endphp
 
     <title>{{ config('app.name', 'Spomenar') }} - @yield('title', __('ui.meta.default_title'))</title>
 
-    {{-- SEO Meta Tags Stack (pages can push custom meta tags here) --}}
-    @stack('seo-meta-tags')
-
-    {{-- Default meta tags (used if no custom meta tags are pushed) --}}
-    @if(!View::hasSection('seo-meta-tags'))
+    @if($customSeoMetaTags !== '')
+    {!! $customSeoMetaTags !!}
+    @else
     <meta name="description" content="@yield('meta_description', __('ui.seo.default_description'))">
     @endif
 
@@ -91,12 +99,22 @@
     <meta property="og:title" content="@yield('og_title', config('app.name', 'Spomenar') . ' - ' . __('ui.meta.default_title'))">
     <meta property="og:description" content="@yield('og_description', __('ui.seo.default_description'))">
     <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $socialImage }}">
+    <meta property="og:image:alt" content="{{ $socialImageAlt }}">
     <meta property="og:locale" content="{{ str_replace('-', '_', $currentHreflang) }}">
     @foreach($localeToHreflang as $code => $hreflang)
         @if($code !== $currentLocale)
             <meta property="og:locale:alternate" content="{{ str_replace('-', '_', $hreflang) }}">
         @endif
     @endforeach
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('og_title', config('app.name', 'Spomenar') . ' - ' . __('ui.meta.default_title'))">
+    <meta name="twitter:description" content="@yield('og_description', __('ui.seo.default_description'))">
+    <meta name="twitter:image" content="{{ $socialImage }}">
+    <meta name="twitter:image:alt" content="{{ $socialImageAlt }}">
+    @if($twitterHandle !== '')
+    <meta name="twitter:site" content="{{ $twitterHandle }}">
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

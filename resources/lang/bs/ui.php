@@ -145,6 +145,7 @@ return [
 
     'about' => [
         'title' => 'O nama',
+        'meta_description' => 'Saznajte kako Spomenar pomaze porodicama da sacuvaju uspomene kroz digitalne memorijale, galerije i poruke sjecanja.',
         'page_title' => 'O Spomenaru',
         'hero_desc' => 'Savremena platforma koja pomaže porodicama da sačuvaju uspomene na voljene.',
         'mission_label' => 'Nasa misija',
@@ -169,6 +170,7 @@ return [
 
     'contact' => [
         'title' => 'Kontakt',
+        'meta_description' => 'Kontaktirajte Spomenar za podrsku, pitanja i prijedloge vezane za digitalne memorijale i korisnicke naloge.',
         'page_title' => 'Kontaktirajte nas',
         'hero_desc' => 'Pošaljite pitanje, sugestiju ili prijedlog. Odgovaramo u najkraćem roku.',
         'form_title' => 'Pošaljite poruku',
@@ -517,5 +519,4 @@ return [
         ],
     ],
 ];
-
 

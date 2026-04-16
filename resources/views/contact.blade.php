@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', __('ui.contact.title'))
+@section('meta_description', __('ui.contact.meta_description'))
 
 @section('content')
 <main class="flex-1">

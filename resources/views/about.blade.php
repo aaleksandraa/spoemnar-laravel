@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', __('ui.about.title'))
+@section('meta_description', __('ui.about.meta_description'))
 
 @section('content')
 <main class="flex-1">

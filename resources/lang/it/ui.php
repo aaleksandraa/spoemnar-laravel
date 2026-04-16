@@ -145,6 +145,7 @@ return [
 
     'about' => [
         'title' => 'Chi siamo',
+        'meta_description' => 'Scopri come Spomenar aiuta le famiglie a conservare i ricordi attraverso memoriali digitali, gallerie e messaggi di ricordo.',
         'page_title' => 'Informazioni su Spomenar',
         'hero_desc' => 'Una piattaforma moderna che aiuta le famiglie a custodire i ricordi delle persone care.',
         'mission_label' => 'La nostra missione',
@@ -169,6 +170,7 @@ return [
 
     'contact' => [
         'title' => 'Contatto',
+        'meta_description' => 'Contatta Spomenar per supporto, domande e suggerimenti relativi ai memoriali digitali e agli account utente.',
         'page_title' => 'Contattaci',
         'hero_desc' => 'Invia una domanda, un suggerimento o un idea. Rispondiamo il prima possibile.',
         'form_title' => 'Invia un messaggio',

@@ -72,7 +72,7 @@ return [
             'min' => 120,
             'max' => 160,
         ],
-        'default_og_image' => '/images/og-default.jpg',
+        'default_og_image' => '/spomenar-pozadina.jpg',
     ],
 
     /*

@@ -3,6 +3,7 @@
 namespace App\Services\SEO;
 
 use App\Models\Memorial;
+use App\Support\MediaUrl;
 use Illuminate\Support\Facades\Config;
 
 class StructuredDataService
@@ -62,18 +63,21 @@ class StructuredDataService
     public function generateWebSiteSchema(): array
     {
         $siteName = Config::get('seo.site.name', 'Spomenar');
-        $siteUrl = Config::get('seo.site.url', url('/'));
+        $siteUrl = rtrim((string) Config::get('seo.site.url', url('/')), '/');
+        $locale = app()->getLocale();
+        $localizedHomeUrl = $siteUrl.route('home', ['locale' => $locale], false);
+        $localizedSearchUrl = $siteUrl.route('search.page', ['locale' => $locale], false);
 
         return [
             '@context' => 'https://schema.org',
             '@type' => 'WebSite',
             'name' => $siteName,
-            'url' => $siteUrl,
+            'url' => $localizedHomeUrl,
             'potentialAction' => [
                 '@type' => 'SearchAction',
                 'target' => [
                     '@type' => 'EntryPoint',
-                    'urlTemplate' => $siteUrl . '/search?q={search_term_string}',
+                    'urlTemplate' => $localizedSearchUrl.'?q={search_term_string}',
                 ],
                 'query-input' => 'required name=search_term_string',
             ],
@@ -94,6 +98,13 @@ class StructuredDataService
             'name' => $memorial->first_name . ' ' . $memorial->last_name,
         ];
 
+        if (filled($memorial->slug)) {
+            $schema['url'] = route('memorial.profile', [
+                'locale' => app()->getLocale(),
+                'slug' => $memorial->slug,
+            ]);
+        }
+
         // Add birth date if available
         if ($memorial->birth_date) {
             $schema['birthDate'] = $memorial->birth_date->format('Y-m-d');
@@ -105,8 +116,9 @@ class StructuredDataService
         }
 
         // Add image URL if available
-        if ($memorial->primaryPhoto) {
-            $schema['image'] = $memorial->primaryPhoto->url;
+        $imageUrl = MediaUrl::normalize($memorial->profile_image_url);
+        if (is_string($imageUrl) && $imageUrl !== '') {
+            $schema['image'] = $imageUrl;
         }
 
         // Add description if available
