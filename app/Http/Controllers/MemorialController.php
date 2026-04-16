@@ -11,6 +11,7 @@ use App\Http\Resources\MemorialResource;
 use App\Services\SanitizationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MemorialController extends Controller
 {
@@ -123,6 +124,8 @@ class MemorialController extends Controller
     public function store(StoreMemorialRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $translations = $validated['translations'] ?? [];
+        unset($validated['translations']);
 
         // Sanitize biography to prevent XSS
         if (isset($validated['biography'])) {
@@ -144,8 +147,13 @@ class MemorialController extends Controller
         $validated['slug'] = $slug;
         $validated['user_id'] = $request->user()->id;
 
-        $memorial = Memorial::create($validated);
-        $memorial->load(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity']);
+        $memorial = DB::transaction(function () use ($validated, $translations): Memorial {
+            $memorial = Memorial::create($validated);
+            $this->syncTranslations($memorial, $translations);
+
+            return $memorial;
+        });
+        $memorial->load(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity', 'translations']);
 
         return response()->json([
             'data' => new MemorialResource($memorial),
@@ -157,7 +165,7 @@ class MemorialController extends Controller
      */
     public function show(Request $request, string $slug): JsonResponse
     {
-        $memorial = Memorial::with(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity'])
+        $memorial = Memorial::with(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity', 'translations'])
             ->where('slug', $slug)
             ->first();
 
@@ -178,7 +186,7 @@ class MemorialController extends Controller
         }
 
         // Load relationships
-        $memorial->load(['images', 'videos', 'tributes', 'birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity']);
+        $memorial->load(['images', 'videos', 'tributes', 'birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity', 'translations']);
 
         return response()->json([
             'data' => new MemorialResource($memorial),
@@ -198,6 +206,8 @@ class MemorialController extends Controller
         }
 
         $validated = $request->validated();
+        $translations = $validated['translations'] ?? null;
+        unset($validated['translations']);
 
         // Sanitize biography to prevent XSS
         if (isset($validated['biography'])) {
@@ -223,10 +233,16 @@ class MemorialController extends Controller
             $validated['slug'] = $slug;
         }
 
-        $memorial->update($validated);
+        DB::transaction(function () use ($memorial, $validated, $translations): void {
+            $memorial->update($validated);
+
+            if (is_array($translations)) {
+                $this->syncTranslations($memorial, $translations);
+            }
+        });
 
         return response()->json([
-            'data' => new MemorialResource($memorial->fresh(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity'])),
+            'data' => new MemorialResource($memorial->fresh(['birthCountry', 'deathCountry', 'birthPlaceEntity', 'deathPlaceEntity', 'translations'])),
         ]);
     }
 
@@ -261,5 +277,44 @@ class MemorialController extends Controller
 
         return $user->roles()->where('role', 'admin')->exists()
             || (string) $user->role === 'admin';
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $translations
+     */
+    private function syncTranslations(Memorial $memorial, array $translations): void
+    {
+        foreach ($translations as $translationData) {
+            $locale = $translationData['locale'] ?? null;
+            if (!is_string($locale) || trim($locale) === '') {
+                continue;
+            }
+
+            $payload = [
+                'birth_place' => $translationData['birth_place'] ?? null,
+                'death_place' => $translationData['death_place'] ?? null,
+                'biography' => $translationData['biography'] ?? null,
+            ];
+
+            if (is_string($payload['biography']) && $payload['biography'] !== '') {
+                $payload['biography'] = $this->sanitizationService->sanitizeHtml($payload['biography']);
+            }
+
+            $hasLocalizedContent = collect($payload)->contains(static function ($value): bool {
+                return is_string($value) && trim($value) !== '';
+            });
+
+            if (!$hasLocalizedContent) {
+                $memorial->translations()
+                    ->where('locale', $locale)
+                    ->delete();
+                continue;
+            }
+
+            $memorial->translations()->updateOrCreate(
+                ['locale' => $locale],
+                $payload
+            );
+        }
     }
 }

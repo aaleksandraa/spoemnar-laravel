@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SearchRequest;
 use App\Services\SearchService;
+use App\Support\LocaleResolver;
 use Illuminate\Http\JsonResponse;
 
 class SearchController extends Controller
@@ -23,14 +24,17 @@ class SearchController extends Controller
      */
     public function search(SearchRequest $request): JsonResponse
     {
-        $query = $request->input('query');
+        $query = (string) $request->input('query', $request->input('q', ''));
         $perPage = $request->input('per_page', 15);
+        $locale = $request->input('locale');
+        if (!is_string($locale) || !LocaleResolver::isSupported($locale)) {
+            $locale = app()->getLocale();
+        }
 
-        // Check if user is authenticated
-        $publicOnly = !$request->user();
+        $user = $request->user();
 
         // Perform search
-        $results = $this->searchService->searchMemorials($query, $publicOnly, $perPage);
+        $results = $this->searchService->searchMemorials($query, $user, $perPage, $locale);
 
         return response()->json($results);
     }

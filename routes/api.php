@@ -52,7 +52,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/memorials/{memorial}/tributes', [TributeController::class, 'store'])->middleware('throttle:3,10');
 
     // Search route (public)
-    Route::get('/search', [SearchController::class, 'search'])->middleware('throttle:search');
+    Route::get('/search', [SearchController::class, 'search'])->middleware(['optional.auth', 'throttle:search']);
 
     // Hero settings route (public)
     Route::get('/hero-settings', [HeroSettingsController::class, 'show']);

@@ -6,6 +6,9 @@
     $memorialBirthYear = \Carbon\Carbon::parse($memorial->birth_date)->format('Y');
     $memorialDeathYear = \Carbon\Carbon::parse($memorial->death_date)->format('Y');
     $profileImageUrl = \App\Support\MediaUrl::normalize($memorial->profile_image_url);
+    $localizedBirthPlace = $memorial->localizedBirthPlace($currentLocale);
+    $localizedDeathPlace = $memorial->localizedDeathPlace($currentLocale);
+    $localizedBiography = $memorial->localizedBiography($currentLocale);
     $galleryImages = $memorial->images
         ->filter(static function ($image) use ($profileImageUrl) {
             $imageUrl = \App\Support\MediaUrl::normalize($image->image_url);
@@ -15,11 +18,13 @@
     $galleryImageUrls = $galleryImages
         ->map(static fn ($image) => \App\Support\MediaUrl::normalize($image->image_url))
         ->values();
-    $memorialSeoDescription = __('ui.memorial.seo_profile_description', [
-        'name' => $memorialFullName,
-        'birth' => $memorialBirthYear,
-        'death' => $memorialDeathYear,
-    ]);
+    $memorialSeoDescription = is_string($localizedBiography) && trim(strip_tags($localizedBiography)) !== ''
+        ? \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/u', ' ', strip_tags($localizedBiography)) ?? ''), 160)
+        : __('ui.memorial.seo_profile_description', [
+            'name' => $memorialFullName,
+            'birth' => $memorialBirthYear,
+            'death' => $memorialDeathYear,
+        ]);
 @endphp
 
 @section('title', __('ui.memorial.seo_profile_title', ['name' => $memorialFullName]))
@@ -195,33 +200,33 @@
                         {{ \Carbon\Carbon::parse($memorial->death_date)->format('d.m.Y.') }}
                     </div>
 
-                    @if($memorial->birth_place || $memorial->death_place)
+                    @if($localizedBirthPlace || $localizedDeathPlace)
                         <div class="w-full max-w-md pt-4 space-y-2 border-t border-border">
-                            @if($memorial->birth_place)
+                            @if($localizedBirthPlace)
                                 <div class="flex items-center justify-center gap-2 text-muted-foreground">
                                     <svg class="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0L6.343 16.657a8 8 0 1111.314 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span class="text-sm md:text-base">{{ __('ui.memorial.born_in', ['place' => $memorial->birth_place]) }}</span>
+                                    <span class="text-sm md:text-base">{{ __('ui.memorial.born_in', ['place' => $localizedBirthPlace]) }}</span>
                                 </div>
                             @endif
-                            @if($memorial->death_place)
+                            @if($localizedDeathPlace)
                                 <div class="flex items-center justify-center gap-2 text-muted-foreground">
                                     <svg class="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0L6.343 16.657a8 8 0 1111.314 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span class="text-sm md:text-base">{{ __('ui.memorial.died_in', ['place' => $memorial->death_place]) }}</span>
+                                    <span class="text-sm md:text-base">{{ __('ui.memorial.died_in', ['place' => $localizedDeathPlace]) }}</span>
                                 </div>
                             @endif
                         </div>
                     @endif
 
-                    @if($memorial->biography)
+                    @if($localizedBiography)
                         <div class="w-full max-w-2xl pt-6 border-t border-border text-left">
                             <h3 class="text-2xl font-serif font-semibold mb-4 text-primary text-center">{{ __('ui.memorial.biography') }}</h3>
-                            <p class="text-foreground leading-relaxed whitespace-pre-wrap">{{ $memorial->biography }}</p>
+                            <p class="text-foreground leading-relaxed whitespace-pre-wrap">{{ $localizedBiography }}</p>
                         </div>
                     @endif
                 </div>

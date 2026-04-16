@@ -81,6 +81,12 @@ Ne treba posebno slati:
 
 Mozete ih otvoriti i provjeriti rucno, ali ih ne trebate pojedinacno submitovati ako je index sitemap ispravan.
 
+Napomena za search URL-ove:
+
+- osnovni locale search landing kao `/de/search` moze biti indeksabilan
+- filtrirane i query varijante search stranice ne treba ocekivati u indeksu
+- primjeri: `/de/search?q=ime`, `/de/search?page=2`, `/de/search?birth_year_from=1950`
+
 ## Sta provjeriti prije submit-a
 
 Obavezno testirati:
@@ -143,7 +149,7 @@ Za reprezentativni uzorak profila radite `URL Inspection`:
    - `URL is on Google` ili makar da nema crawl blokadu
    - `Crawled as Googlebot smartphone`
    - `User-declared canonical` odgovara stvarnom locale URL-u
-   - nema `noindex`
+   - nema `noindex` za javni profil
 
 Ako profil nije indeksiran:
 
@@ -152,6 +158,12 @@ Ako profil nije indeksiran:
 - provjerite da nije blokiran `robots.txt`
 - provjerite da vraca `200`
 - po potrebi kliknite `Request indexing`
+
+Za search URL-ove:
+
+- `/{locale}/search` bez parametara moze ostati indexable
+- search URL sa parametrima je normalno da bude `noindex,follow`
+- takve URL-ove ne treba submitovati rucno u GSC
 
 ## Hreflang i jezici
 

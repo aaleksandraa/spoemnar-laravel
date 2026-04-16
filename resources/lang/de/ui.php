@@ -339,6 +339,9 @@ return [
         'location_load_error' => 'Laender und Orte konnten nicht geladen werden.',
         'biography' => 'Biografie',
         'biography_placeholder' => 'Schreiben Sie Biografie, Erinnerungen und wichtige Lebensmomente...',
+        'translations_title' => 'Sprachversionen',
+        'translations_hint' => 'Die primaeren Felder oben bleiben der Originalinhalt des Gedenkprofils. Fuegen Sie optionale Uebersetzungen fuer locale Profilseiten und Suchergebnisse hinzu.',
+        'translation_card_hint' => 'Lassen Sie alle Felder leer, wenn Sie keine eigene Version fuer diese Sprache benoetigen.',
         'media' => 'Medien',
         'profile_image' => 'Profilbild',
         'gallery_images' => 'Galeriebilder',
@@ -519,4 +522,3 @@ return [
         ],
     ],
 ];
-

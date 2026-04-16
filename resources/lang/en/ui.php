@@ -339,6 +339,9 @@ return [
         'location_load_error' => 'Failed to load countries and places.',
         'biography' => 'Biography',
         'biography_placeholder' => 'Write biography, memories and key life moments...',
+        'translations_title' => 'Language versions',
+        'translations_hint' => 'Primary fields above stay as the original memorial content. Add optional translations for locale profile pages and search results.',
+        'translation_card_hint' => 'Leave all fields empty if you do not want a dedicated version for this language.',
         'media' => 'Media',
         'profile_image' => 'Profile image',
         'gallery_images' => 'Gallery images',
@@ -519,4 +522,3 @@ return [
         ],
     ],
 ];
-

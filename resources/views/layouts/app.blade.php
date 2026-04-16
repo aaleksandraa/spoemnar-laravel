@@ -31,12 +31,61 @@
         $routeParams = $route?->parameters() ?? [];
         unset($routeParams['locale']);
         $queryParams = request()->except('lang');
+        $isSearchRoute = $currentRouteName === 'search.page';
+        $searchFilterKeys = [
+            'q',
+            'birth_country_id',
+            'birth_place_id',
+            'death_country_id',
+            'death_place_id',
+            'birth_year_from',
+            'birth_year_to',
+            'death_year_from',
+            'death_year_to',
+            'has_profile_image',
+            'has_gallery',
+            'has_video',
+            'sort',
+            'page',
+        ];
+        $hasSearchFilters = false;
+        if ($isSearchRoute) {
+            foreach ($searchFilterKeys as $key) {
+                if (!array_key_exists($key, $queryParams)) {
+                    continue;
+                }
+
+                $value = $queryParams[$key];
+                if ($key === 'sort' && (string) $value === 'newest') {
+                    continue;
+                }
+
+                if ($key === 'page' && ((string) $value === '' || (string) $value === '1')) {
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    $flattened = array_filter($value, static fn ($item) => $item !== null && $item !== '');
+                    if ($flattened !== []) {
+                        $hasSearchFilters = true;
+                        break;
+                    }
+                    continue;
+                }
+
+                if ($value !== null && $value !== '') {
+                    $hasSearchFilters = true;
+                    break;
+                }
+            }
+        }
+        $seoQueryParams = $hasSearchFilters ? [] : $queryParams;
         $noIndexRoutes = ['login', 'register', 'dashboard', 'memorial.create', 'memorial.edit', 'admin.panel', 'password.forgot', 'password.reset.form'];
-        $robotsMetaContent = in_array($currentRouteName, $noIndexRoutes, true)
+        $robotsMetaContent = in_array($currentRouteName, $noIndexRoutes, true) || $hasSearchFilters
             ? 'noindex,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1'
             : 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1';
 
-        $localizedUrl = function (string $locale) use ($currentRouteName, $routeParams, $queryParams, $localeToHreflang): string {
+        $localizedUrl = function (string $locale) use ($currentRouteName, $routeParams, $seoQueryParams, $localeToHreflang): string {
             if ($currentRouteName && \Illuminate\Support\Facades\Route::has($currentRouteName)) {
                 $url = route($currentRouteName, array_merge($routeParams, ['locale' => $locale]));
             } else {
@@ -53,8 +102,8 @@
                 $url = url($path);
             }
 
-            if ($queryParams !== []) {
-                $url .= '?'.http_build_query($queryParams);
+            if ($seoQueryParams !== []) {
+                $url .= '?'.http_build_query($seoQueryParams);
             }
 
             return $url;

@@ -3,6 +3,7 @@
 namespace App\Services\SEO;
 
 use App\Models\Memorial;
+use App\Models\MemorialTranslation;
 use App\Support\LocaleResolver;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -49,13 +50,20 @@ class SitemapService
             ->where('is_public', true)
             ->whereNotNull('slug')
             ->where('slug', '!=', '')
+            ->with([
+                'translations' => static function ($translationQuery) use ($locale) {
+                    $translationQuery
+                        ->where('locale', $locale)
+                        ->select(['id', 'memorial_id', 'locale', 'updated_at']);
+                },
+            ])
             ->select(['id', 'slug', 'updated_at'])
             ->orderBy('id')
             ->chunkById(500, function ($memorials) use (&$urls, $locale): void {
                 foreach ($memorials as $memorial) {
                     $urls[] = [
                         'loc' => route('memorial.profile', ['locale' => $locale, 'slug' => $memorial->slug]),
-                        'lastmod' => $memorial->updated_at?->toAtomString() ?? now()->toAtomString(),
+                        'lastmod' => $memorial->localizedUpdatedAt($locale)?->toAtomString() ?? now()->toAtomString(),
                         'changefreq' => $this->getChangeFreq('memorial'),
                         'priority' => $this->getPriority('memorial'),
                     ];
@@ -201,16 +209,39 @@ class SitemapService
         $latestMemorialUpdate = Memorial::query()
             ->where('is_public', true)
             ->max('updated_at');
+        $latestTranslationUpdate = MemorialTranslation::query()
+            ->whereHas('memorial', static function ($query): void {
+                $query->where('is_public', true);
+            })
+            ->max('updated_at');
 
-        if (is_string($latestMemorialUpdate) && $latestMemorialUpdate !== '') {
-            return Carbon::parse($latestMemorialUpdate)->toAtomString();
-        }
-
-        if ($latestMemorialUpdate instanceof Carbon) {
-            return $latestMemorialUpdate->toAtomString();
+        $latestContentUpdate = $this->latestAtomTimestamp($latestMemorialUpdate, $latestTranslationUpdate);
+        if ($latestContentUpdate !== null) {
+            return $latestContentUpdate;
         }
 
         return $this->getLastModForStaticPage('home');
+    }
+
+    private function latestAtomTimestamp(mixed ...$timestamps): ?string
+    {
+        $latest = null;
+
+        foreach ($timestamps as $timestamp) {
+            if ($timestamp instanceof Carbon) {
+                $candidate = $timestamp;
+            } elseif (is_string($timestamp) && $timestamp !== '') {
+                $candidate = Carbon::parse($timestamp);
+            } else {
+                continue;
+            }
+
+            if ($latest === null || $candidate->greaterThan($latest)) {
+                $latest = $candidate;
+            }
+        }
+
+        return $latest?->toAtomString();
     }
 
     /**

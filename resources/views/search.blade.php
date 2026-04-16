@@ -294,8 +294,11 @@
                             $birthYear = $memorial->birth_date ? \Illuminate\Support\Carbon::parse($memorial->birth_date)->format('Y') : __('ui.search.empty_value');
                             $deathYear = $memorial->death_date ? \Illuminate\Support\Carbon::parse($memorial->death_date)->format('Y') : __('ui.search.empty_value');
                             $memorialProfileImageUrl = \App\Support\MediaUrl::normalize($memorial->profile_image_url);
+                            $localizedBirthPlace = $memorial->localizedBirthPlace(app()->getLocale());
+                            $localizedDeathPlace = $memorial->localizedDeathPlace(app()->getLocale());
+                            $localizedBiography = $memorial->localizedBiography(app()->getLocale());
                         @endphp
-                        <a href="{{ route('memorial.profile', ['slug' => $memorial->slug]) }}" class="group block h-full">
+                        <a href="{{ route('memorial.profile', ['locale' => app()->getLocale(), 'slug' => $memorial->slug]) }}" class="group block h-full">
                             <article class="h-full rounded-xl border border-border bg-background overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1">
                                 <div class="aspect-square bg-muted" style="aspect-ratio: 1 / 1;">
                                     @if($memorialProfileImageUrl)
@@ -319,20 +322,20 @@
                                         {{ __('ui.search.born') }}: {{ $birthYear }} • {{ __('ui.search.died') }}: {{ $deathYear }}
                                     </p>
 
-                                    @if($memorial->birth_place || $memorial->death_place)
+                                    @if($localizedBirthPlace || $localizedDeathPlace)
                                         <div class="text-sm text-muted-foreground space-y-1">
-                                            @if($memorial->birth_place)
-                                                <p>{{ __('ui.search.birth_place') }}: {{ $memorial->birth_place }}</p>
+                                            @if($localizedBirthPlace)
+                                                <p>{{ __('ui.search.birth_place') }}: {{ $localizedBirthPlace }}</p>
                                             @endif
-                                            @if($memorial->death_place)
-                                                <p>{{ __('ui.search.death_place') }}: {{ $memorial->death_place }}</p>
+                                            @if($localizedDeathPlace)
+                                                <p>{{ __('ui.search.death_place') }}: {{ $localizedDeathPlace }}</p>
                                             @endif
                                         </div>
                                     @endif
 
-                                    @if($memorial->biography)
+                                    @if($localizedBiography)
                                         <p class="text-sm text-foreground/90 leading-relaxed">
-                                            {{ \Illuminate\Support\Str::limit((string) $memorial->biography, 130) }}
+                                            {{ \Illuminate\Support\Str::limit((string) $localizedBiography, 130) }}
                                         </p>
                                     @endif
 

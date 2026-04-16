@@ -339,6 +339,9 @@ return [
         'location_load_error' => 'Neuspjelo učitavanje država i mjesta.',
         'biography' => 'Biografija',
         'biography_placeholder' => 'Napisite biografiju, uspomene i vazne trenutke...',
+        'translations_title' => 'Jezicne verzije',
+        'translations_hint' => 'Primarna polja iznad ostaju izvorni sadrzaj memorijala. Dodajte opcionalne prijevode za locale profile i rezultate pretrage.',
+        'translation_card_hint' => 'Ostavite sva polja prazna ako ne zelite posebnu verziju za ovaj jezik.',
         'media' => 'Mediji',
         'profile_image' => 'Profilna slika',
         'gallery_images' => 'Galerijske slike',
@@ -519,4 +522,3 @@ return [
         ],
     ],
 ];
-

@@ -647,4 +647,53 @@ class MetaTagsTest extends TestCase
         $this->assertNotEmpty($description);
         $this->assertStringContainsString('search', strtolower($description));
     }
+
+    public function test_clean_search_page_remains_indexable(): void
+    {
+        $response = $this->get('/en/search');
+
+        $response->assertOk();
+        $response->assertSee(
+            '<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">',
+            false
+        );
+        $response->assertSee(
+            '<link rel="canonical" href="http://localhost/en/search">',
+            false
+        );
+    }
+
+    public function test_filtered_search_page_is_noindex_and_canonicalized_to_base_search_url(): void
+    {
+        $response = $this->get('/en/search?q=john&sort=name_asc');
+
+        $response->assertOk();
+        $response->assertSee(
+            '<meta name="robots" content="noindex,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">',
+            false
+        );
+        $response->assertSee(
+            '<link rel="canonical" href="http://localhost/en/search">',
+            false
+        );
+        $response->assertDontSee(
+            '<link rel="canonical" href="http://localhost/en/search?q=john&amp;sort=name_asc">',
+            false
+        );
+    }
+
+    public function test_paginated_search_page_is_noindex(): void
+    {
+        $response = $this->get('/en/search?page=2');
+
+        $response->assertOk();
+        $response->assertSee(
+            '<meta name="robots" content="noindex,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">',
+            false
+        );
+        $response->assertSee(
+            '<link rel="canonical" href="http://localhost/en/search">',
+            false
+        );
+    }
 }

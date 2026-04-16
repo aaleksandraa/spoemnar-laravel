@@ -15,6 +15,11 @@ class MemorialResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $resourceLocale = $request->input('locale');
+        $activeLocale = is_string($resourceLocale) && $resourceLocale !== ''
+            ? $resourceLocale
+            : app()->getLocale();
+
         return [
             'id' => $this->id,
             'userId' => $this->user_id,
@@ -64,6 +69,24 @@ class MemorialResource extends JsonResource
             }),
             'createdAt' => $this->created_at?->toISOString(),
             'updatedAt' => $this->updated_at?->toISOString(),
+            'localized' => [
+                'birthPlace' => $this->localizedBirthPlace($activeLocale),
+                'deathPlace' => $this->localizedDeathPlace($activeLocale),
+                'biography' => $this->localizedBiography($activeLocale),
+            ],
+            'translations' => $this->whenLoaded('translations', function () {
+                return $this->translations
+                    ->mapWithKeys(static function ($translation): array {
+                        return [
+                            $translation->locale => [
+                                'birthPlace' => $translation->birth_place,
+                                'deathPlace' => $translation->death_place,
+                                'biography' => $translation->biography,
+                            ],
+                        ];
+                    })
+                    ->all();
+            }),
             'images' => $this->whenLoaded('images', function () {
                 $profileImageUrl = MediaUrl::normalize($this->profile_image_url);
                 $filteredImages = $this->images;

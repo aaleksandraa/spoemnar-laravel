@@ -122,9 +122,10 @@ class StructuredDataService
         }
 
         // Add description if available
-        if (!empty($memorial->biography)) {
+        $localizedBiography = $memorial->localizedBiography(app()->getLocale());
+        if (!empty($localizedBiography)) {
             // Sanitize and limit description length
-            $description = strip_tags($memorial->biography);
+            $description = strip_tags($localizedBiography);
             $description = mb_substr($description, 0, 500);
             $schema['description'] = $description;
         }

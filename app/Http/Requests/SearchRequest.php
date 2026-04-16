@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\LocaleResolver;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SearchRequest extends FormRequest
 {
@@ -26,6 +28,7 @@ class SearchRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
             'q' => ['required_without:query', 'string', 'max:255'],
+            'locale' => ['nullable', 'string', Rule::in(LocaleResolver::supportedLocales())],
             'type' => ['nullable', 'in:profiles,tributes,locations'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],

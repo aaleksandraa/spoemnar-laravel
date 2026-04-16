@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\MediaUrl;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +85,11 @@ class Memorial extends Model
         return $this->hasMany(Tribute::class);
     }
 
+    public function translations()
+    {
+        return $this->hasMany(MemorialTranslation::class);
+    }
+
     public function birthCountry()
     {
         return $this->belongsTo(Country::class, 'birth_country_id');
@@ -110,6 +116,70 @@ class Memorial extends Model
     public function getProfileImageUrlAttribute(?string $value): ?string
     {
         return MediaUrl::normalize($value);
+    }
+
+    public function translationForLocale(?string $locale = null): ?MemorialTranslation
+    {
+        $activeLocale = is_string($locale) && $locale !== ''
+            ? $locale
+            : app()->getLocale();
+
+        if ($this->relationLoaded('translations')) {
+            return $this->translations->firstWhere('locale', $activeLocale);
+        }
+
+        if (!$this->exists) {
+            return null;
+        }
+
+        return $this->translations()
+            ->where('locale', $activeLocale)
+            ->first();
+    }
+
+    public function localizedBirthPlace(?string $locale = null): ?string
+    {
+        return $this->localizedField('birth_place', $locale);
+    }
+
+    public function localizedDeathPlace(?string $locale = null): ?string
+    {
+        return $this->localizedField('death_place', $locale);
+    }
+
+    public function localizedBiography(?string $locale = null): ?string
+    {
+        return $this->localizedField('biography', $locale);
+    }
+
+    public function localizedUpdatedAt(?string $locale = null): ?CarbonInterface
+    {
+        $translationUpdatedAt = $this->translationForLocale($locale)?->updated_at;
+
+        if ($translationUpdatedAt instanceof CarbonInterface && $this->updated_at instanceof CarbonInterface) {
+            return $translationUpdatedAt->greaterThan($this->updated_at)
+                ? $translationUpdatedAt
+                : $this->updated_at;
+        }
+
+        return $translationUpdatedAt instanceof CarbonInterface
+            ? $translationUpdatedAt
+            : $this->updated_at;
+    }
+
+    private function localizedField(string $field, ?string $locale = null): ?string
+    {
+        $translatedValue = $this->translationForLocale($locale)?->{$field};
+        if (is_string($translatedValue) && trim($translatedValue) !== '') {
+            return $translatedValue;
+        }
+
+        $baseValue = $this->getAttributeValue($field);
+        if (!is_string($baseValue) || trim($baseValue) === '') {
+            return $baseValue;
+        }
+
+        return $baseValue;
     }
 
     /**

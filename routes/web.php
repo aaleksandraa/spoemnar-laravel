@@ -6,6 +6,7 @@ use App\Models\HeroSettings;
 use App\Models\Memorial;
 use App\Models\Place;
 use App\Support\LocaleResolver;
+use App\Support\MemorialSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -96,20 +97,21 @@ $renderSearch = static function (Request $request) {
         [$filters['death_year_from'], $filters['death_year_to']] = [$filters['death_year_to'], $filters['death_year_from']];
     }
 
+    $activeLocale = app()->getLocale();
+
     $query = Memorial::query()
         ->where('is_public', true)
+        ->with([
+            'translations' => static function ($translationQuery) use ($activeLocale) {
+                $translationQuery
+                    ->where('locale', $activeLocale)
+                    ->select(['id', 'memorial_id', 'locale', 'birth_place', 'death_place', 'biography', 'updated_at']);
+            },
+        ])
         ->withCount(['images', 'videos']);
 
     if ($filters['q'] !== '') {
-        $searchTerm = $filters['q'];
-        $query->where(function ($innerQuery) use ($searchTerm) {
-            $innerQuery->where('first_name', 'like', "%{$searchTerm}%")
-                ->orWhere('last_name', 'like', "%{$searchTerm}%")
-                ->orWhere('birth_place', 'like', "%{$searchTerm}%")
-                ->orWhere('death_place', 'like', "%{$searchTerm}%")
-                ->orWhere('biography', 'like', "%{$searchTerm}%")
-                ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$searchTerm}%"]);
-        });
+        MemorialSearch::applyKeywordFilter($query, $filters['q'], $activeLocale);
     }
 
     if ($filters['birth_country_id'] !== null) {
@@ -239,6 +241,11 @@ $renderMemorialBySlug = static function (string $locale, string $slug) {
             'images',
             'videos',
             'tributes' => fn ($query) => $query->orderBy('created_at', 'desc'),
+            'translations' => static function ($translationQuery) use ($locale) {
+                $translationQuery
+                    ->where('locale', $locale)
+                    ->select(['id', 'memorial_id', 'locale', 'birth_place', 'death_place', 'biography', 'updated_at']);
+            },
         ])
         ->firstOrFail();
 

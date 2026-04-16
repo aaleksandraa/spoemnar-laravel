@@ -6,6 +6,10 @@
     $initialSlug = $slug ?? null;
     $dashboardUrl = route('dashboard', ['locale' => $currentLocale]);
     $loginUrl = route('login', ['locale' => $currentLocale]);
+    $translationLocales = array_values(array_filter(
+        \App\Support\LocaleResolver::supportedLocales(),
+        static fn (string $locale): bool => $locale !== 'bs'
+    ));
 @endphp
 
 @section('title', $pageMode === 'edit' ? __('ui.memorial_form.edit_title') : __('ui.memorial_form.create_title'))
@@ -95,6 +99,57 @@
                     <section class="space-y-4">
                         <h2 class="text-xl font-serif font-semibold text-primary">{{ __('ui.memorial_form.biography') }}</h2>
                         <textarea id="biography" name="biography" rows="6" class="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring" placeholder="{{ __('ui.memorial_form.biography_placeholder') }}"></textarea>
+                    </section>
+
+                    <section class="space-y-4">
+                        <div class="space-y-2">
+                            <h2 class="text-xl font-serif font-semibold text-primary">{{ __('ui.memorial_form.translations_title') }}</h2>
+                            <p class="text-sm text-muted-foreground">{{ __('ui.memorial_form.translations_hint') }}</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            @foreach($translationLocales as $translationLocale)
+                                <article class="rounded-xl border border-border bg-background overflow-hidden">
+                                    <header class="px-4 py-3 border-b border-border">
+                                        <h3 class="text-base font-semibold text-foreground">{{ __('ui.languages.'.$translationLocale) }}</h3>
+                                        <p class="text-xs text-muted-foreground mt-1">{{ __('ui.memorial_form.translation_card_hint') }}</p>
+                                    </header>
+                                    <div class="p-4 grid gap-4 md:grid-cols-2">
+                                        <div class="space-y-2">
+                                            <label for="translation-{{ $translationLocale }}-birth-place" class="block text-sm font-medium text-foreground">{{ __('ui.memorial_form.birth_place') }}</label>
+                                            <input
+                                                id="translation-{{ $translationLocale }}-birth-place"
+                                                type="text"
+                                                data-translation-locale="{{ $translationLocale }}"
+                                                data-translation-field="birth_place"
+                                                class="w-full h-11 px-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                                            >
+                                        </div>
+                                        <div class="space-y-2">
+                                            <label for="translation-{{ $translationLocale }}-death-place" class="block text-sm font-medium text-foreground">{{ __('ui.memorial_form.death_place') }}</label>
+                                            <input
+                                                id="translation-{{ $translationLocale }}-death-place"
+                                                type="text"
+                                                data-translation-locale="{{ $translationLocale }}"
+                                                data-translation-field="death_place"
+                                                class="w-full h-11 px-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                                            >
+                                        </div>
+                                        <div class="space-y-2 md:col-span-2">
+                                            <label for="translation-{{ $translationLocale }}-biography" class="block text-sm font-medium text-foreground">{{ __('ui.memorial_form.biography') }}</label>
+                                            <textarea
+                                                id="translation-{{ $translationLocale }}-biography"
+                                                rows="5"
+                                                data-translation-locale="{{ $translationLocale }}"
+                                                data-translation-field="biography"
+                                                class="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                                                placeholder="{{ __('ui.memorial_form.biography_placeholder') }}"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </article>
+                            @endforeach
+                        </div>
                     </section>
 
                     <section class="space-y-4">
@@ -245,6 +300,7 @@
         const profileImageInput = document.getElementById('profile_image');
         const galleryImagesInput = document.getElementById('gallery_images');
         const isPublicInput = document.getElementById('is_public');
+        const translationInputs = Array.from(document.querySelectorAll('[data-translation-locale][data-translation-field]'));
         const profileCropModal = document.getElementById('profileCropModal');
         const profileCropImage = document.getElementById('profileCropImage');
         const profileCropZoom = document.getElementById('profileCropZoom');
@@ -310,6 +366,55 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        function clearTranslationFields() {
+            translationInputs.forEach((input) => {
+                input.value = '';
+            });
+        }
+
+        function populateTranslationFields(translations) {
+            clearTranslationFields();
+
+            const translationMap = translations && typeof translations === 'object' ? translations : {};
+            translationInputs.forEach((input) => {
+                const locale = String(input.dataset.translationLocale || '');
+                const field = String(input.dataset.translationField || '');
+                if (locale === '' || field === '') {
+                    return;
+                }
+
+                const translation = translationMap[locale] || null;
+                if (!translation || typeof translation !== 'object') {
+                    return;
+                }
+
+                const camelField = field.replace(/_([a-z])/g, (_match, character) => character.toUpperCase());
+                const value = translation[field] ?? translation[camelField] ?? '';
+                input.value = typeof value === 'string' ? value : '';
+            });
+        }
+
+        function collectTranslationsPayload() {
+            const payload = {};
+
+            translationInputs.forEach((input) => {
+                const locale = String(input.dataset.translationLocale || '');
+                const field = String(input.dataset.translationField || '');
+                if (locale === '' || field === '') {
+                    return;
+                }
+
+                if (!Object.prototype.hasOwnProperty.call(payload, locale)) {
+                    payload[locale] = {};
+                }
+
+                const value = input.value.trim();
+                payload[locale][field] = value === '' ? null : value;
+            });
+
+            return payload;
         }
 
         function normalizeMediaUrl(value) {
@@ -991,6 +1096,7 @@
             isPublicInput.checked = !!memorial.isPublic;
             legacyBirthPlace = memorial.birthPlace || null;
             legacyDeathPlace = memorial.deathPlace || null;
+            populateTranslationFields(memorial.translations || {});
 
             populateCountrySelects(memorial.birthCountryId || null, memorial.deathCountryId || null);
             await Promise.all([
@@ -1165,6 +1271,7 @@
                     death_place: getSelectedPlaceLabel(deathPlaceInput) || legacyDeathPlace || null,
                     biography: biographyInput.value.trim() || null,
                     is_public: isPublicInput.checked,
+                    translations: collectTranslationsPayload(),
                 };
 
                 let responsePayload;
@@ -1288,6 +1395,7 @@
                     croppedProfileFile = null;
                     setProfileImagePreview('');
                     clearPendingGalleryFiles();
+                    clearTranslationFields();
                     existingImagesWrap.classList.add('hidden');
                     existingVideosWrap.classList.add('hidden');
                 }

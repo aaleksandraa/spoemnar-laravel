@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\LocaleResolver;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,6 +24,8 @@ class StoreMemorialRequest extends FormRequest
      */
     public function rules(): array
     {
+        $supportedLocales = LocaleResolver::supportedLocales();
+
         return [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -55,6 +58,11 @@ class StoreMemorialRequest extends FormRequest
             'biography' => ['nullable', 'string'],
             'profile_image_url' => ['nullable', 'string', 'max:2048'],
             'is_public' => ['nullable', 'boolean'],
+            'translations' => ['nullable', 'array'],
+            'translations.*.locale' => ['required', 'string', Rule::in($supportedLocales)],
+            'translations.*.birth_place' => ['nullable', 'string', 'max:255'],
+            'translations.*.death_place' => ['nullable', 'string', 'max:255'],
+            'translations.*.biography' => ['nullable', 'string', 'max:5000'],
         ];
     }
 
@@ -88,6 +96,7 @@ class StoreMemorialRequest extends FormRequest
             'birth_place_id' => $this->normalizeInteger($this->input('birth_place_id')),
             'death_country_id' => $this->normalizeInteger($this->input('death_country_id')),
             'death_place_id' => $this->normalizeInteger($this->input('death_place_id')),
+            'translations' => $this->normalizeTranslationsInput($this->input('translations')),
         ]);
     }
 
@@ -129,5 +138,42 @@ class StoreMemorialRequest extends FormRequest
         }
 
         return (int) $value;
+    }
+
+    private function normalizeTranslationsInput(mixed $translations): ?array
+    {
+        if (!is_array($translations)) {
+            return null;
+        }
+
+        $normalizedTranslations = [];
+
+        foreach ($translations as $locale => $translation) {
+            if (!is_array($translation)) {
+                continue;
+            }
+
+            $translationLocale = $translation['locale'] ?? $locale;
+
+            $normalizedTranslations[] = [
+                'locale' => is_string($translationLocale) ? LocaleResolver::normalizeLocale($translationLocale) : null,
+                'birth_place' => $this->normalizeNullableString($translation['birth_place'] ?? $translation['birthPlace'] ?? null),
+                'death_place' => $this->normalizeNullableString($translation['death_place'] ?? $translation['deathPlace'] ?? null),
+                'biography' => $this->normalizeNullableString($translation['biography'] ?? null),
+            ];
+        }
+
+        return $normalizedTranslations;
+    }
+
+    private function normalizeNullableString(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : $trimmed;
     }
 }

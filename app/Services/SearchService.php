@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Models\Memorial;
+use App\Models\User;
+use App\Support\MemorialSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 class SearchService
 {
@@ -12,21 +13,26 @@ class SearchService
      * Search memorials by name with optional public-only filter
      *
      * @param string $query Search term
-     * @param bool $publicOnly Filter to only public memorials
+     * @param User|null $user Authenticated user when available
      * @param int $perPage Number of results per page
+     * @param string|null $locale Locale used for translated content search
      * @return LengthAwarePaginator
      */
-    public function searchMemorials(string $query, bool $publicOnly = true, int $perPage = 15): LengthAwarePaginator
+    public function searchMemorials(string $query, ?User $user = null, int $perPage = 15, ?string $locale = null): LengthAwarePaginator
     {
-        $searchQuery = Memorial::query()
-            ->where(function ($q) use ($query) {
-                $q->where(DB::raw('LOWER(first_name)'), 'LIKE', '%' . strtolower($query) . '%')
-                  ->orWhere(DB::raw('LOWER(last_name)'), 'LIKE', '%' . strtolower($query) . '%');
-            });
+        $searchQuery = Memorial::query();
+        MemorialSearch::applyKeywordFilter($searchQuery, $query, $locale);
 
-        // Apply public-only filter if needed
-        if ($publicOnly) {
+        if (!$user) {
             $searchQuery->where('is_public', true);
+        } elseif ($user->roles()->where('role', 'admin')->exists() || (string) $user->role === 'admin') {
+            // Admin users can search across all memorials.
+        } else {
+            $searchQuery->where(static function ($visibilityQuery) use ($user): void {
+                $visibilityQuery
+                    ->where('is_public', true)
+                    ->orWhere('user_id', $user->id);
+            });
         }
 
         // Sort by created_at DESC (newest first)

@@ -3,6 +3,8 @@
 
     $service = app(StructuredDataService::class);
     $schema = null;
+    $data = $data ?? null;
+    $breadcrumbs = $breadcrumbs ?? null;
 
     switch ($type) {
         case 'organization':

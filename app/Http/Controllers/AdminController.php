@@ -9,6 +9,7 @@ use App\Models\Memorial;
 use App\Models\Tribute;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Support\FullNameSearch;
 use App\Support\LocaleResolver;
 use App\Support\MediaUrl;
 use Illuminate\Http\JsonResponse;
@@ -101,7 +102,7 @@ class AdminController extends Controller
                     ->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%")
-                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$search}%"]);
+                    ->orWhereRaw(FullNameSearch::expression().' like ?', ["%{$search}%"]);
             });
         }
 
