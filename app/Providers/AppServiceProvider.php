@@ -94,6 +94,32 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('register', function (Request $request) {
+            $email = mb_strtolower(trim((string) $request->input('email', '')));
+            $ip = (string) $request->ip();
+            $tooManyRegisterAttemptsResponse = static function (Request $request, array $headers) {
+                app(\App\Services\Security\SecurityLogger::class)->logSuspiciousRegistration(
+                    $request,
+                    $email = trim((string) $request->input('email', '')) !== '' ? mb_strtolower(trim((string) $request->input('email', ''))) : null,
+                    'rate_limited',
+                    [
+                        'email_domain' => \App\Support\DisposableEmailDomainChecker::extractDomain((string) $request->input('email', '')),
+                        'reasons' => ['rate_limited'],
+                    ]
+                );
+
+                return response()->json([
+                    'message' => 'Too many registration attempts. Please try again later.',
+                ], 429, $headers);
+            };
+
+            return [
+                Limit::perMinute(2)->by("register:ip:minute:{$ip}")->response($tooManyRegisterAttemptsResponse),
+                Limit::perHour(8)->by("register:ip:hour:{$ip}")->response($tooManyRegisterAttemptsResponse),
+                Limit::perHour(4)->by("register:email:{$ip}:{$email}")->response($tooManyRegisterAttemptsResponse),
+            ];
+        });
+
         RateLimiter::for('search', function (Request $request) {
             $ip = (string) $request->ip();
 

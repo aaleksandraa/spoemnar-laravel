@@ -33,4 +33,16 @@ return [
     'locale' => [
         'in' => 'Odabrani jezik nije podrzan.',
     ],
+
+    'security' => [
+        'bot_detected' => 'Registracija je blokirana antispam provjerom.',
+        'disposable_email' => 'Privremene email adrese nisu dozvoljene za registraciju.',
+        'invalid_form' => 'Sigurnosna provjera registracije nije uspjela. Osvjezite stranicu i pokusajte ponovo.',
+        'invalid_signature' => 'Sigurnosna provjera registracije nije uspjela. Osvjezite stranicu i pokusajte ponovo.',
+        'too_fast' => 'Sacekajte nekoliko sekundi prije slanja registracije.',
+        'expired' => 'Forma za registraciju je istekla. Osvjezite stranicu i pokusajte ponovo.',
+        'captcha_required' => 'Potvrdite sigurnosnu provjeru prije kreiranja naloga.',
+        'captcha_failed' => 'Sigurnosna provjera nije uspjela. Pokusajte ponovo.',
+        'captcha_unavailable' => 'Sigurnosna provjera je trenutno nedostupna. Pokusajte ponovo za koji trenutak.',
+    ],
 ];

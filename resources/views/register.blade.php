@@ -1,5 +1,10 @@
 @extends('layouts.app')
 
+@php
+    $registerFormSecurity = \App\Support\RegistrationFormProtection::issue((string) request()->ip());
+    $turnstileSiteKey = trim((string) config('services.turnstile.site_key', ''));
+@endphp
+
 @section('title', __('ui.auth.register_title'))
 
 @section('content')
@@ -20,6 +25,19 @@
 
             <form id="registerForm" class="space-y-5" novalidate>
                 @csrf
+                <div class="absolute -left-[9999px] top-auto w-px h-px overflow-hidden" aria-hidden="true">
+                    <label for="company">Company</label>
+                    <input
+                        type="text"
+                        id="company"
+                        name="company"
+                        tabindex="-1"
+                        autocomplete="organization"
+                    />
+                </div>
+                <input type="hidden" id="form_rendered_at" name="form_rendered_at" value="{{ $registerFormSecurity['form_rendered_at'] }}">
+                <input type="hidden" id="form_signature" name="form_signature" value="{{ $registerFormSecurity['form_signature'] }}">
+
                 <div class="space-y-2">
                     <label for="full_name" class="block text-sm font-medium text-foreground">{{ __('ui.auth.full_name') }}</label>
                     <input
@@ -84,6 +102,12 @@
                     </span>
                 </label>
 
+                @if($turnstileSiteKey !== '')
+                    <div class="space-y-2">
+                        <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey }}"></div>
+                    </div>
+                @endif
+
                 <button
                     type="submit"
                     id="registerSubmit"
@@ -101,6 +125,12 @@
     </div>
 </main>
 @endsection
+
+@if($turnstileSiteKey !== '')
+    @push('head')
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    @endpush
+@endif
 
 @push('scripts')
 <script>
@@ -188,8 +218,15 @@
                 email: document.getElementById('email').value.trim(),
                 password: password.value,
                 password_confirmation: passwordConfirm.value,
+                company: document.getElementById('company').value,
+                form_rendered_at: Number(document.getElementById('form_rendered_at').value),
+                form_signature: document.getElementById('form_signature').value,
                 locale: @json(app()->getLocale()),
             };
+            const turnstileInput = form.querySelector('[name="cf-turnstile-response"]');
+            if (turnstileInput && turnstileInput.value) {
+                payload['cf-turnstile-response'] = turnstileInput.value;
+            }
 
             try {
                 const response = await fetch('/api/v1/register', {

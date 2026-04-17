@@ -130,7 +130,7 @@ class BotStatisticsService
                 }
 
                 // Parse Laravel log format: [timestamp] environment.LEVEL: message context
-                if (preg_match('/\[(.*?)\].*?security\.(WARNING|ERROR|INFO):.*?({.*})/', $line, $matches)) {
+                if (preg_match('/\[(.*?)\]\s+[^:]+?\.(WARNING|ERROR|INFO):.*?({.*})/', $line, $matches)) {
                     $timestamp = $matches[1];
                     $contextJson = $matches[3];
 

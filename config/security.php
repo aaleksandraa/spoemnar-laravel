@@ -110,4 +110,37 @@ return [
 
     ],
 
+    'registration' => [
+        'disposable_email_domains' => [
+            '10minutemail.com',
+            '10minutemail.net',
+            'dispostable.com',
+            'emailondeck.com',
+            'fakeinbox.com',
+            'getnada.com',
+            'grr.la',
+            'guerrillamail.biz',
+            'guerrillamail.com',
+            'guerrillamail.de',
+            'guerrillamail.info',
+            'guerrillamail.net',
+            'guerrillamail.org',
+            'maildrop.cc',
+            'mailinator.com',
+            'mailnesia.com',
+            'mintemail.com',
+            'moakt.com',
+            'sharklasers.com',
+            'temp-mail.io',
+            'temp-mail.org',
+            'tempail.com',
+            'tempmail.com',
+            'throwawaymail.com',
+            'trashmail.com',
+            'yopmail.com',
+            'yopmail.fr',
+            'yopmail.net',
+        ],
+    ],
+
 ];

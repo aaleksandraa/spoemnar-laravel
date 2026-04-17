@@ -9,6 +9,7 @@ use App\Models\Memorial;
 use App\Models\Tribute;
 use App\Models\User;
 use App\Models\UserRole;
+use App\Services\Security\SecurityEventLogService;
 use App\Support\FullNameSearch;
 use App\Support\LocaleResolver;
 use App\Support\MediaUrl;
@@ -533,6 +534,29 @@ class AdminController extends Controller
                 ],
             ],
             'issues' => $issues,
+        ]);
+    }
+
+    /**
+     * Return suspicious registration attempts for admin review.
+     */
+    public function suspiciousRegistrations(Request $request, SecurityEventLogService $securityEventLogService): JsonResponse
+    {
+        $validated = $request->validate([
+            'days' => ['nullable', 'integer', 'min:1', 'max:30'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $days = (int) ($validated['days'] ?? 14);
+        $limit = (int) ($validated['limit'] ?? 50);
+
+        return response()->json([
+            'data' => $securityEventLogService->getRecentSuspiciousRegistrations($days, $limit),
+            'summary' => $securityEventLogService->getSuspiciousRegistrationSummary($days),
+            'meta' => [
+                'days' => $days,
+                'limit' => $limit,
+            ],
         ]);
     }
 

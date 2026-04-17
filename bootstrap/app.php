@@ -106,6 +106,10 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        $exceptions->render(function (\Illuminate\Http\Exceptions\HttpResponseException $e, $request) {
+            return $e->getResponse();
+        });
+
         // Handle custom exceptions
         $exceptions->render(function (\App\Exceptions\MemorialNotFoundException $e, $request) {
             if ($request->expectsJson()) {
@@ -155,6 +159,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException ||
                 $e instanceof \Illuminate\Auth\AuthenticationException ||
                 $e instanceof \Illuminate\Auth\Access\AuthorizationException ||
+                $e instanceof \Illuminate\Http\Exceptions\HttpResponseException ||
                 $e instanceof \App\Exceptions\MemorialNotFoundException ||
                 $e instanceof \App\Exceptions\UnauthorizedAccessException ||
                 $e instanceof \App\Exceptions\InvalidSlugException ||

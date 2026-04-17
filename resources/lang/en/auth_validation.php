@@ -33,4 +33,16 @@ return [
     'locale' => [
         'in' => 'Selected language is not supported.',
     ],
+
+    'security' => [
+        'bot_detected' => 'Registration request was blocked by the anti-spam check.',
+        'disposable_email' => 'Disposable email addresses are not allowed for registration.',
+        'invalid_form' => 'Registration form verification failed. Please refresh the page and try again.',
+        'invalid_signature' => 'Registration form verification failed. Please refresh the page and try again.',
+        'too_fast' => 'Please wait a few seconds before submitting the registration form.',
+        'expired' => 'This registration form has expired. Please refresh the page and try again.',
+        'captcha_required' => 'Please complete the security check before creating an account.',
+        'captcha_failed' => 'Security check failed. Please try again.',
+        'captcha_unavailable' => 'Security check is temporarily unavailable. Please try again in a moment.',
+    ],
 ];

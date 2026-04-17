@@ -68,6 +68,37 @@ class SecurityLogger
     }
 
     /**
+     * Log a suspicious registration attempt for admin review.
+     *
+     * @param array<string, mixed> $context
+     */
+    public function logSuspiciousRegistration(Request $request, ?string $email, string $reason, array $context = []): void
+    {
+        $emailDomain = is_string($context['email_domain'] ?? null)
+            ? $context['email_domain']
+            : null;
+
+        $reasons = $context['reasons'] ?? [$reason];
+        if (!is_array($reasons)) {
+            $reasons = [$reason];
+        }
+
+        $this->log->channel('security')->warning('Suspicious registration attempt detected', array_merge([
+            'event' => 'suspicious_registration',
+            'reason' => $reason,
+            'reasons' => array_values(array_unique(array_map('strval', $reasons))),
+            'email' => $email,
+            'email_domain' => $emailDomain,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'route' => $request->path(),
+            'source' => $request->expectsJson() ? 'api' : 'web',
+            'request_id' => $request->header('X-Request-ID'),
+            'timestamp' => now()->toIso8601String(),
+        ], $context));
+    }
+
+    /**
      * Generate a unique fingerprint for the request
      */
     private function getRequestFingerprint(Request $request, string $pattern): string

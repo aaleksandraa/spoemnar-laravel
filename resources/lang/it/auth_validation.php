@@ -33,4 +33,16 @@ return [
     'locale' => [
         'in' => 'La lingua selezionata non e supportata.',
     ],
+
+    'security' => [
+        'bot_detected' => 'La registrazione e stata bloccata dal controllo antispam.',
+        'disposable_email' => 'Gli indirizzi email temporanei non sono consentiti per la registrazione.',
+        'invalid_form' => 'La verifica di sicurezza della registrazione non e riuscita. Aggiorna la pagina e riprova.',
+        'invalid_signature' => 'La verifica di sicurezza della registrazione non e riuscita. Aggiorna la pagina e riprova.',
+        'too_fast' => 'Attendi qualche secondo prima di inviare il modulo di registrazione.',
+        'expired' => 'Questo modulo di registrazione e scaduto. Aggiorna la pagina e riprova.',
+        'captcha_required' => 'Completa il controllo di sicurezza prima di creare un account.',
+        'captcha_failed' => 'Il controllo di sicurezza non e riuscito. Riprova.',
+        'captcha_unavailable' => 'Il controllo di sicurezza non e al momento disponibile. Riprova tra poco.',
+    ],
 ];

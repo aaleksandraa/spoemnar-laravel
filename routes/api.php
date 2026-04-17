@@ -34,7 +34,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Authentication routes
-    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:3,1');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset-link');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset-submit');
@@ -115,6 +115,7 @@ Route::prefix('v1')->group(function () {
 
             // SEO health check
             Route::get('/seo/locale-health', [AdminController::class, 'localeSeoHealth']);
+            Route::get('/security/suspicious-registrations', [AdminController::class, 'suspiciousRegistrations']);
 
             // Locations management
             Route::get('/locations/countries', [LocationController::class, 'adminCountries']);

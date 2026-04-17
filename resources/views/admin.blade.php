@@ -60,12 +60,13 @@
 
         <section class="rounded-2xl border border-border bg-card shadow-elegant overflow-hidden">
             <header class="border-b border-border p-3 md:p-4">
-                <nav class="grid grid-cols-2 md:grid-cols-6 gap-2" aria-label="{{ __('ui.admin.title') }}">
+                <nav class="grid grid-cols-2 md:grid-cols-7 gap-2" aria-label="{{ __('ui.admin.title') }}">
                     <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border bg-muted/60" data-tab-target="settings">{{ __('ui.admin.tabs.settings') }}</button>
                     <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border hover:bg-muted transition-colors" data-tab-target="users">{{ __('ui.admin.tabs.users') }}</button>
                     <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border hover:bg-muted transition-colors" data-tab-target="memorials">{{ __('ui.admin.tabs.memorials') }}</button>
                     <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border hover:bg-muted transition-colors" data-tab-target="hero">{{ __('ui.admin.tabs.hero') }}</button>
                     <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border hover:bg-muted transition-colors" data-tab-target="seo">{{ __('ui.admin.tabs.seo') }}</button>
+                    <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border hover:bg-muted transition-colors" data-tab-target="security">{{ __('ui.admin.tabs.security') }}</button>
                     <button type="button" class="admin-tab-trigger h-10 rounded-lg px-3 text-sm border border-border hover:bg-muted transition-colors" data-tab-target="locations">{{ __('ui.admin.tabs.locations') }}</button>
                 </nav>
             </header>
@@ -180,6 +181,21 @@
                     <div id="adminSeoLoading" class="hidden text-sm text-muted-foreground">{{ __('ui.admin.loading') }}</div>
                     <div id="adminSeoSummary" class="hidden rounded-xl border border-border bg-background p-4"></div>
                     <div id="adminSeoLocales" class="hidden rounded-xl border border-border overflow-hidden"></div>
+                </section>
+
+                <section id="adminTab-security" class="admin-tab-content hidden space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <h2 class="text-2xl font-serif font-semibold text-primary">{{ __('ui.admin.security_title') }}</h2>
+                            <p class="text-muted-foreground mt-1">{{ __('ui.admin.security_description') }}</p>
+                        </div>
+                        <button id="adminSecurityRunBtn" type="button" class="inline-flex items-center justify-center px-5 h-10 rounded-lg border border-border hover:bg-muted transition-colors">
+                            {{ __('ui.admin.security_refresh') }}
+                        </button>
+                    </div>
+                    <div id="adminSecurityLoading" class="hidden text-sm text-muted-foreground">{{ __('ui.admin.loading') }}</div>
+                    <div id="adminSecuritySummary" class="hidden rounded-xl border border-border bg-background p-4"></div>
+                    <div id="adminSecurityList" class="hidden rounded-xl border border-border overflow-hidden"></div>
                 </section>
 
                 <section id="adminTab-locations" class="admin-tab-content hidden space-y-6">
@@ -331,6 +347,31 @@
                 issues: @json(__('ui.admin.seo_issues')),
                 sitemap: @json(__('ui.admin.seo_sitemap_status')),
             },
+            security: {
+                total: @json(__('ui.admin.security_summary_total')),
+                uniqueIps: @json(__('ui.admin.security_summary_unique_ips')),
+                uniqueEmails: @json(__('ui.admin.security_summary_unique_emails')),
+                noEvents: @json(__('ui.admin.security_no_events')),
+                time: @json(__('ui.admin.security_time')),
+                reason: @json(__('ui.admin.security_reason')),
+                email: @json(__('ui.admin.security_email')),
+                domain: @json(__('ui.admin.security_domain')),
+                ip: @json(__('ui.admin.security_ip')),
+                source: @json(__('ui.admin.security_source')),
+                refreshed: @json(__('ui.admin.security_refreshed')),
+                reasons: {
+                    disposable_email_domain: @json(__('ui.admin.security_reason_disposable_email_domain')),
+                    honeypot_filled: @json(__('ui.admin.security_reason_honeypot_filled')),
+                    expired_form: @json(__('ui.admin.security_reason_expired_form')),
+                    submitted_too_fast: @json(__('ui.admin.security_reason_submitted_too_fast')),
+                    invalid_signature: @json(__('ui.admin.security_reason_invalid_signature')),
+                    captcha_required: @json(__('ui.admin.security_reason_captcha_required')),
+                    captcha_failed: @json(__('ui.admin.security_reason_captcha_failed')),
+                    captcha_unavailable: @json(__('ui.admin.security_reason_captcha_unavailable')),
+                    rate_limited: @json(__('ui.admin.security_reason_rate_limited')),
+                    unknown: @json(__('ui.admin.security_reason_unknown')),
+                },
+            },
             locations: {
                 allCountries: @json(__('ui.admin.locations_all_countries')),
                 noCountries: @json(__('ui.admin.locations_no_countries')),
@@ -389,6 +430,10 @@
         const seoLoading = document.getElementById('adminSeoLoading');
         const seoSummary = document.getElementById('adminSeoSummary');
         const seoLocales = document.getElementById('adminSeoLocales');
+        const securityRunBtn = document.getElementById('adminSecurityRunBtn');
+        const securityLoading = document.getElementById('adminSecurityLoading');
+        const securitySummary = document.getElementById('adminSecuritySummary');
+        const securityList = document.getElementById('adminSecurityList');
 
         const locationCountryForm = document.getElementById('adminLocationCountryForm');
         const locationCountryCodeInput = document.getElementById('locationCountryCode');
@@ -860,6 +905,73 @@
             }
         }
 
+        async function loadSecurityLog(showSuccessAlert = true) {
+            securityLoading.classList.remove('hidden');
+            securitySummary.classList.add('hidden');
+            securityList.classList.add('hidden');
+
+            try {
+                const response = await apiRequest('/api/v1/admin/security/suspicious-registrations');
+                const summary = response?.summary || {};
+                const entries = Array.isArray(response?.data) ? response.data : [];
+
+                securitySummary.innerHTML = `
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div><p class="text-xs text-muted-foreground uppercase">${escapeHtml(labels.security.total)}</p><p class="font-medium">${escapeHtml(String(summary.total ?? 0))}</p></div>
+                        <div><p class="text-xs text-muted-foreground uppercase">${escapeHtml(labels.security.uniqueIps)}</p><p class="font-medium">${escapeHtml(String(summary.uniqueIps ?? 0))}</p></div>
+                        <div><p class="text-xs text-muted-foreground uppercase">${escapeHtml(labels.security.uniqueEmails)}</p><p class="font-medium">${escapeHtml(String(summary.uniqueEmails ?? 0))}</p></div>
+                    </div>
+                `;
+
+                if (entries.length === 0) {
+                    securityList.innerHTML = `<div class="p-4 text-sm text-muted-foreground">${escapeHtml(labels.security.noEvents)}</div>`;
+                } else {
+                    const rows = entries.map((entry) => {
+                        const reasonText = entry?.reason && labels.security.reasons[entry.reason]
+                            ? labels.security.reasons[entry.reason]
+                            : labels.security.reasons.unknown;
+
+                        return `
+                            <tr class="border-b border-border">
+                                <td class="px-4 py-3 text-sm">${escapeHtml(formatDate(entry?.timestamp))}</td>
+                                <td class="px-4 py-3 text-sm">${escapeHtml(reasonText)}</td>
+                                <td class="px-4 py-3 text-sm">${escapeHtml(entry?.email || '-')}</td>
+                                <td class="px-4 py-3 text-sm">${escapeHtml(entry?.emailDomain || '-')}</td>
+                                <td class="px-4 py-3 text-sm">${escapeHtml(entry?.ip || '-')}</td>
+                                <td class="px-4 py-3 text-sm uppercase">${escapeHtml(entry?.source || '-')}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    securityList.innerHTML = `
+                        <table class="w-full text-left">
+                            <thead class="bg-muted/40">
+                                <tr>
+                                    <th class="px-4 py-3 text-xs uppercase text-muted-foreground">${escapeHtml(labels.security.time)}</th>
+                                    <th class="px-4 py-3 text-xs uppercase text-muted-foreground">${escapeHtml(labels.security.reason)}</th>
+                                    <th class="px-4 py-3 text-xs uppercase text-muted-foreground">${escapeHtml(labels.security.email)}</th>
+                                    <th class="px-4 py-3 text-xs uppercase text-muted-foreground">${escapeHtml(labels.security.domain)}</th>
+                                    <th class="px-4 py-3 text-xs uppercase text-muted-foreground">${escapeHtml(labels.security.ip)}</th>
+                                    <th class="px-4 py-3 text-xs uppercase text-muted-foreground">${escapeHtml(labels.security.source)}</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    `;
+                }
+
+                securitySummary.classList.remove('hidden');
+                securityList.classList.remove('hidden');
+                if (showSuccessAlert) {
+                    showAlert('success', labels.security.refreshed);
+                }
+            } catch (error) {
+                showAlert('error', error.message || @json(__('ui.admin.action_failed')));
+            } finally {
+                securityLoading.classList.add('hidden');
+            }
+        }
+
         function renderLocationCountryOptions(selectEl, includeAllOption = false, selectedValue = null) {
             if (!selectEl) {
                 return;
@@ -1189,6 +1301,9 @@
         });
 
         seoRunBtn.addEventListener('click', runSeoHealthCheck);
+        securityRunBtn.addEventListener('click', function () {
+            loadSecurityLog(true);
+        });
 
         logoutBtn.addEventListener('click', async function () {
             try {
@@ -1231,6 +1346,7 @@
                     loadUsers(1),
                     loadMemorials(1),
                     loadHeroSettings(),
+                    loadSecurityLog(false),
                     loadLocationCountries(),
                     loadLocationPlaces(),
                 ]);

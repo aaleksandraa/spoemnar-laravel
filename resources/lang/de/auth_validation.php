@@ -33,4 +33,16 @@ return [
     'locale' => [
         'in' => 'Die ausgewaehlte Sprache wird nicht unterstuetzt.',
     ],
+
+    'security' => [
+        'bot_detected' => 'Die Registrierung wurde durch die Anti-Spam-Pruefung blockiert.',
+        'disposable_email' => 'Temporare E-Mail-Adressen sind fuer die Registrierung nicht erlaubt.',
+        'invalid_form' => 'Die Sicherheitspruefung der Registrierung ist fehlgeschlagen. Bitte laden Sie die Seite neu und versuchen Sie es erneut.',
+        'invalid_signature' => 'Die Sicherheitspruefung der Registrierung ist fehlgeschlagen. Bitte laden Sie die Seite neu und versuchen Sie es erneut.',
+        'too_fast' => 'Bitte warten Sie ein paar Sekunden, bevor Sie das Registrierungsformular absenden.',
+        'expired' => 'Dieses Registrierungsformular ist abgelaufen. Bitte laden Sie die Seite neu und versuchen Sie es erneut.',
+        'captcha_required' => 'Bitte schliessen Sie die Sicherheitspruefung ab, bevor Sie ein Konto erstellen.',
+        'captcha_failed' => 'Die Sicherheitspruefung ist fehlgeschlagen. Bitte versuchen Sie es erneut.',
+        'captcha_unavailable' => 'Die Sicherheitspruefung ist derzeit nicht verfuegbar. Bitte versuchen Sie es in einem Moment erneut.',
+    ],
 ];
