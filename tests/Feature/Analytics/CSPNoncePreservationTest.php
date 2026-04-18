@@ -201,6 +201,10 @@ class CSPNoncePreservationTest extends TestCase
 
             // Verify CSP policy contains 'unsafe-inline' for scripts
             $this->assertStringContainsString("script-src 'self' 'unsafe-inline' 'unsafe-eval'", $cspHeader);
+            $this->assertStringContainsString('https://www.googletagmanager.com', $cspHeader);
+            $this->assertStringContainsString('https://www.google-analytics.com', $cspHeader);
+            $this->assertStringContainsString("connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net", $cspHeader);
+            $this->assertStringContainsString("frame-src 'self' https://www.googletagmanager.com", $cspHeader);
 
             // Verify other CSP directives are present
             $this->assertStringContainsString("default-src 'self'", $cspHeader);
