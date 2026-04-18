@@ -106,6 +106,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Too Many Attempts.'
+                ], 429, $e->getHeaders());
+            }
+
+            return response('Too Many Attempts.', 429, $e->getHeaders());
+        });
+
         $exceptions->render(function (\Illuminate\Http\Exceptions\HttpResponseException $e, $request) {
             return $e->getResponse();
         });
@@ -159,6 +169,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException ||
                 $e instanceof \Illuminate\Auth\AuthenticationException ||
                 $e instanceof \Illuminate\Auth\Access\AuthorizationException ||
+                $e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException ||
+                $e instanceof \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException ||
                 $e instanceof \Illuminate\Http\Exceptions\HttpResponseException ||
                 $e instanceof \App\Exceptions\MemorialNotFoundException ||
                 $e instanceof \App\Exceptions\UnauthorizedAccessException ||

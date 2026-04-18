@@ -2,6 +2,10 @@
 
 This guide covers setting up your Google Analytics 4 (GA4) property with proper configuration for the memorial application, including enhanced measurement, user properties, data retention, IP anonymization, and DebugView testing.
 
+Current measurement ID used by this project:
+
+- `G-6JKGF35EGF`
+
 ## Table of Contents
 
 1. [GA4 Property Creation](#ga4-property-creation)
@@ -53,7 +57,10 @@ After creating the data stream, you'll see your **Measurement ID** (format: `G-X
 Add this to your `.env` file:
 
 ```env
-GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+ANALYTICS_ENABLED=true
+GA4_MEASUREMENT_ID=G-6JKGF35EGF
+GA4_USE_DIRECT_SCRIPT=false
+GA4_SEND_PAGE_VIEW=false
 ```
 
 ### Step 5: Create Staging Data Stream (Optional)
@@ -84,6 +91,12 @@ Enhanced measurement automatically tracks common user interactions without addit
 
 Enable the following enhanced measurement events:
 
+Recommended adjustment for this project:
+
+- if you use the GTM-first setup described in this repository, disable GA4 enhanced `Page views`, `Site search`, `Outbound clicks`, and `File downloads`
+- those actions are already tracked manually through `dataLayer` and GTM
+- leaving both enabled would create duplicate reporting
+
 | Event | Status | Description |
 |-------|--------|-------------|
 | **Page views** | ✅ Enabled | Automatically tracks page views |
@@ -95,6 +108,8 @@ Enable the following enhanced measurement events:
 | **Form interactions** | ❌ Disabled | We track forms manually with more detail |
 
 ### Step 3: Configure Site Search
+
+For this project, leave GA4 enhanced site search disabled when using the GTM-first setup. The application already sends a custom `search` event with locale-aware parameters.
 
 1. In Enhanced measurement settings, click **Show advanced settings**
 2. Under **Site search**, configure:
@@ -243,6 +258,7 @@ Ensure consent mode is properly configured in GTM (see GTM Setup Guide):
 - Default consent state: `denied` for analytics_storage
 - Update consent based on user choice
 - Only send data when consent is granted
+- Do not paste the standalone GA4 `gtag.js` snippet manually if GTM is active
 
 ### Step 5: Enable User Deletion
 

@@ -384,6 +384,11 @@
                         $formRenderedAt.'|'.$memorial->id.'|'.session()->getId(),
                         (string) config('app.key')
                     );
+                    $mathChallenge = \App\Support\TributeMathChallenge::issue(
+                        (string) $memorial->id,
+                        (string) session()->getId(),
+                        $formRenderedAt
+                    );
                     $turnstileSiteKey = (string) config('services.turnstile.site_key');
                 @endphp
 
@@ -427,6 +432,33 @@
                         >{{ old('message') }}</textarea>
                     </div>
 
+                    <div class="space-y-2">
+                        <label for="math_answer" class="block text-sm font-medium text-foreground">{{ __('ui.memorial.math_check') }} *</label>
+                        <div class="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center">
+                            <img
+                                src="{{ $mathChallenge['image_data_uri'] }}"
+                                alt="{{ __('ui.memorial.math_image_alt') }}"
+                                class="h-[58px] w-[180px] rounded-md border border-border/60 bg-muted object-contain"
+                                width="180"
+                                height="58"
+                            />
+                            <div class="min-w-0 flex-1 space-y-2">
+                                <p class="text-sm text-muted-foreground">{{ __('ui.memorial.math_check_desc') }}</p>
+                                <input
+                                    id="math_answer"
+                                    name="math_answer"
+                                    type="text"
+                                    inputmode="numeric"
+                                    required
+                                    autocomplete="off"
+                                    value="{{ old('math_answer') }}"
+                                    placeholder="{{ __('ui.memorial.math_placeholder') }}"
+                                    class="w-full max-w-xs px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     @if($turnstileSiteKey !== '')
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-foreground">{{ __('ui.memorial.security_check') }} *</label>
@@ -446,6 +478,7 @@
                     <input type="hidden" name="timestamp" id="timestamp" value="" />
                     <input type="hidden" name="form_rendered_at" value="{{ $formRenderedAt }}" />
                     <input type="hidden" name="form_signature" value="{{ $formSignature }}" />
+                    <input type="hidden" name="math_challenge_payload" value="{{ $mathChallenge['payload'] }}" />
 
                     <button
                         type="submit"

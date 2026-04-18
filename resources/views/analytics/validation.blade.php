@@ -14,8 +14,19 @@
                 <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p class="text-sm text-yellow-800">
                         <strong>Environment:</strong> {{ config('app.env') }} |
-                        <strong>Debug Mode:</strong> {{ config('analytics.gtm.debug_mode') ? 'Enabled' : 'Disabled' }}
+                        <strong>Debug Mode:</strong> {{ config('analytics.gtm.debug_mode') ? 'Enabled' : 'Disabled' }} |
+                        <strong>Analytics Enabled:</strong> {{ config('analytics.enabled') ? 'Yes' : 'No' }}
                     </p>
+                    <p class="mt-2 text-sm text-yellow-800">
+                        <strong>Resolved GTM Container:</strong> {{ config('analytics.gtm.container_id') ?: 'Not configured' }} |
+                        <strong>GA4 Measurement ID:</strong> {{ config('analytics.ga4.measurement_id') ?: 'Not configured' }} |
+                        <strong>Direct GA4 Script:</strong> {{ config('analytics.ga4.use_direct_script') ? 'Enabled' : 'Disabled' }}
+                    </p>
+                    @if(config('app.env') === 'local')
+                        <p class="mt-2 text-sm text-yellow-900">
+                            Local environment intentionally does not load GTM/GA4 scripts. Use staging or production to validate live Google tags.
+                        </p>
+                    @endif
                 </div>
             @endif
         </div>

@@ -25,7 +25,7 @@ return [
         'enabled' => env('ANALYTICS_ENABLED', false),
         'container_id' => env('APP_ENV') === 'production'
             ? env('GTM_ID')
-            : env('GTM_ID_STAGING'),
+            : (env('GTM_ID_STAGING') ?: env('GTM_ID')),
         'debug_mode' => env('ANALYTICS_DEBUG_MODE', false),
     ],
 

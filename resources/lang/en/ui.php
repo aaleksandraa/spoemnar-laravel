@@ -274,6 +274,10 @@ return [
         'copy_fail' => 'Copy failed.',
         'security_check' => 'Security check',
         'security_check_desc' => 'Protection against bots and automated spam.',
+        'math_check' => 'Quick check',
+        'math_check_desc' => 'Enter the correct result shown in the image.',
+        'math_placeholder' => 'Result',
+        'math_image_alt' => 'Security math challenge',
         'messages' => [
             'security_failed' => 'Security check failed. Refresh the page and try again.',
             'too_fast' => 'Message was sent too quickly. Try again in a few seconds.',
@@ -281,6 +285,7 @@ return [
             'too_many_links' => 'Your message contains too many links and was not accepted.',
             'duplicate' => 'The same message has already been sent in the last 24 hours.',
             'captcha_required' => 'Complete the security check and try again.',
+            'math_failed' => 'The math check was not solved correctly. Please try again.',
             'captcha_failed' => 'Security check did not pass. Try again.',
             'captcha_unavailable' => 'Security check is currently unavailable. Try again later.',
             'too_short_clean' => 'Message is too short after processing. Please add more detail.',

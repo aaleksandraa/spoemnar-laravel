@@ -274,6 +274,10 @@ return [
         'copy_fail' => 'Kopieren fehlgeschlagen.',
         'security_check' => 'Sicherheitspruefung',
         'security_check_desc' => 'Schutz vor Bots und automatischem Spam.',
+        'math_check' => 'Kurze Prufung',
+        'math_check_desc' => 'Bitte das richtige Ergebnis aus dem Bild eingeben.',
+        'math_placeholder' => 'Ergebnis',
+        'math_image_alt' => 'Sicherheits-Matheaufgabe',
         'messages' => [
             'security_failed' => 'Sicherheitspruefung fehlgeschlagen. Seite aktualisieren und erneut versuchen.',
             'too_fast' => 'Nachricht wurde zu schnell gesendet. Bitte in einigen Sekunden erneut versuchen.',
@@ -281,6 +285,7 @@ return [
             'too_many_links' => 'Ihre Nachricht enthaelt zu viele Links und wurde nicht akzeptiert.',
             'duplicate' => 'Dieselbe Nachricht wurde in den letzten 24 Stunden bereits gesendet.',
             'captcha_required' => 'Bitte Sicherheitspruefung bestaetigen und erneut versuchen.',
+            'math_failed' => 'Die Matheprufung wurde nicht korrekt geloest. Bitte erneut versuchen.',
             'captcha_failed' => 'Sicherheitspruefung nicht bestanden. Bitte erneut versuchen.',
             'captcha_unavailable' => 'Sicherheitspruefung derzeit nicht verfuegbar. Spaeter erneut versuchen.',
             'too_short_clean' => 'Nachricht ist nach Verarbeitung zu kurz. Bitte mehr Details angeben.',

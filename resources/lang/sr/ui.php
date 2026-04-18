@@ -274,6 +274,10 @@ return [
         'copy_fail' => 'Kopiranje nije uspelo.',
         'security_check' => 'Sigurnosna provera',
         'security_check_desc' => 'Zastita od botova i automatskog spama.',
+        'math_check' => 'Brza provera',
+        'math_check_desc' => 'Upišite tačan rezultat izraza sa sličice.',
+        'math_placeholder' => 'Rezultat',
+        'math_image_alt' => 'Sigurnosni matematički zadatak',
         'messages' => [
             'security_failed' => 'Sigurnosna provera nije uspela. Osvežite stranicu i pokušajte ponovo.',
             'too_fast' => 'Poruka je poslata prebrzo. Pokusajte ponovo za par sekundi.',
@@ -281,6 +285,7 @@ return [
             'too_many_links' => 'Poruka sadrži previše linkova i nije prihvaćena.',
             'duplicate' => 'Ista poruka je vec poslata u poslednja 24 sata.',
             'captcha_required' => 'Potvrdite sigurnosnu proveru i pokušajte ponovo.',
+            'math_failed' => 'Matematička provera nije tačno rešena. Pokušajte ponovo.',
             'captcha_failed' => 'Sigurnosna provera nije prosla. Pokusajte ponovo.',
             'captcha_unavailable' => 'Sigurnosna provera trenutno nije dostupna. Pokusajte kasnije.',
             'too_short_clean' => 'Poruka je prekratka nakon obrade. Dodajte vise detalja.',

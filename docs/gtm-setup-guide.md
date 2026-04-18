@@ -2,6 +2,10 @@
 
 This guide walks you through setting up Google Tag Manager (GTM) for the memorial application, including container creation, GA4 configuration, consent mode implementation, and tag configuration for all 12 event types.
 
+Current GA4 measurement ID for this project:
+
+- `G-6JKGF35EGF`
+
 ## Table of Contents
 
 1. [GTM Container Creation](#gtm-container-creation)
@@ -26,9 +30,9 @@ This guide walks you through setting up Google Tag Manager (GTM) for the memoria
    - **Target Platform**: Web
 5. Click **Create** and accept the Terms of Service
 
-### Step 2: Create Staging Container
+### Step 2: Create Staging Container (Optional)
 
-For testing purposes, create a separate staging container:
+For testing purposes, create a separate staging container if you want isolated testing. If you prefer one shared container for staging and production, the application now supports that too.
 
 1. In GTM, click **Admin** > **Create Container**
 2. **Container Name**: `Spomenar Staging`
@@ -39,14 +43,28 @@ For testing purposes, create a separate staging container:
 
 After creating containers, note down the container IDs:
 - Production: `GTM-XXXXXXX`
-- Staging: `GTM-YYYYYYY`
+- Staging: `GTM-YYYYYYY` (optional)
 
 Add these to your `.env` file:
 
 ```env
+ANALYTICS_ENABLED=true
 GTM_ID=GTM-XXXXXXX
 GTM_ID_STAGING=GTM-YYYYYYY
+GA4_MEASUREMENT_ID=G-6JKGF35EGF
+GA4_USE_DIRECT_SCRIPT=false
+GA4_SEND_PAGE_VIEW=false
+```
+
+If you want to use only one GTM container for all non-local environments:
+
+```env
 ANALYTICS_ENABLED=true
+GTM_ID=GTM-XXXXXXX
+GTM_ID_STAGING=
+GA4_MEASUREMENT_ID=G-6JKGF35EGF
+GA4_USE_DIRECT_SCRIPT=false
+GA4_SEND_PAGE_VIEW=false
 ```
 
 ---
@@ -60,13 +78,23 @@ ANALYTICS_ENABLED=true
    - Click tag configuration area
    - Select **Google Analytics: GA4 Configuration**
 3. **Configuration**:
-   - **Measurement ID**: Enter your GA4 measurement ID (G-XXXXXXXXXX)
+   - **Measurement ID**: Enter `G-6JKGF35EGF`
    - **Configuration Settings**: Add the following fields:
-     - `send_page_view`: `false` (we'll handle this manually)
+     - `send_page_view`: `false` (the app already pushes a `page_view` event through `dataLayer`)
 4. **Triggering**:
-   - Select **Consent Initialization - All Pages**
+   - Select **All Pages**
 5. **Tag Name**: `GA4 Configuration`
 6. Click **Save**
+
+### Step 1.1: Consent Settings on the GA4 Configuration Tag
+
+Inside the same GA4 Configuration tag:
+
+1. Open **Advanced Settings** > **Consent Settings**
+2. Enable built-in consent checks
+3. Require `analytics_storage`
+
+This ensures GA4 respects the application's cookie-consent flow.
 
 ### Step 2: Configure User Properties
 
@@ -112,6 +140,12 @@ For each variable:
 4. Click **Save**
 
 ### Step 2: Configure Default Consent State
+
+Important:
+
+- the frontend already pushes `consent_default` and `consent_update` into `dataLayer`
+- keep consent logic inside GTM; do not paste a separate GA4 `gtag.js` snippet into Blade templates
+- for GTM-first setup, `GA4_USE_DIRECT_SCRIPT` should stay `false`
 
 1. Go to **Tags** > **New**
 2. **Tag Configuration**: Custom HTML
@@ -271,6 +305,16 @@ Repeat the above pattern for all 12 events. Here's a quick reference:
 1. Custom Event trigger with the event name
 2. Data Layer Variables for all parameters
 3. GA4 Event tag with the configuration tag and parameters
+
+Recommended minimum production tags:
+
+1. `GA4 Configuration`
+2. `GA4 Event - page_view`
+3. `GA4 Event - view_memorial`
+4. `GA4 Event - search`
+5. `GA4 Event - sign_up`
+6. `GA4 Event - create_memorial`
+7. `GA4 Event - submit_tribute`
 
 ---
 

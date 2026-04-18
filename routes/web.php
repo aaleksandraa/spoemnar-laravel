@@ -7,6 +7,7 @@ use App\Models\Memorial;
 use App\Models\Place;
 use App\Support\LocaleResolver;
 use App\Support\MemorialSearch;
+use App\Support\TributeMathChallenge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
@@ -257,6 +258,20 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
         'locale' => $locale,
         'slug' => $memorial->slug,
     ]);
+    $rejectTribute = static function (string $message) use ($redirectResponse, $request) {
+        return $redirectResponse
+            ->withInput($request->except([
+                'honeypot',
+                'form_rendered_at',
+                'form_signature',
+                'math_challenge_payload',
+                'math_answer',
+                'cf-turnstile-response',
+            ]))
+            ->withErrors([
+                'message' => $message,
+            ]);
+    };
 
     if (filled($request->input('website'))) {
         return $redirectResponse;
@@ -269,6 +284,8 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
         'website' => 'nullable|string|max:255',
         'form_rendered_at' => 'required|integer',
         'form_signature' => 'required|string|size:64',
+        'math_challenge_payload' => 'required|string|max:4096',
+        'math_answer' => 'required|string|max:16',
     ]);
 
     $formRenderedAt = (int) $validated['form_rendered_at'];
@@ -281,35 +298,35 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
     );
 
     if (!hash_equals($expectedSignature, (string) $validated['form_signature'])) {
-        return $redirectResponse->withErrors([
-            'message' => __('ui.memorial.messages.security_failed'),
-        ]);
+        return $rejectTribute(__('ui.memorial.messages.security_failed'));
+    }
+
+    if (!TributeMathChallenge::verify(
+        (string) $validated['math_challenge_payload'],
+        (string) $validated['math_answer'],
+        (string) $memorial->id,
+        (string) $request->session()->getId(),
+        $formRenderedAt
+    )) {
+        return $rejectTribute(__('ui.memorial.messages.math_failed'));
     }
 
     if ($secondsSinceFormRender < 4) {
-        return $redirectResponse->withErrors([
-            'message' => __('ui.memorial.messages.too_fast'),
-        ]);
+        return $rejectTribute(__('ui.memorial.messages.too_fast'));
     }
 
     if ($secondsSinceFormRender > 7200) {
-        return $redirectResponse->withErrors([
-            'message' => __('ui.memorial.messages.expired'),
-        ]);
+        return $rejectTribute(__('ui.memorial.messages.expired'));
     }
 
     $cleanMessage = trim((string) preg_replace('/\s+/', ' ', $validated['message']));
     if (mb_strlen($cleanMessage) < 10) {
-        return $redirectResponse->withErrors([
-            'message' => __('ui.memorial.messages.too_short_clean'),
-        ]);
+        return $rejectTribute(__('ui.memorial.messages.too_short_clean'));
     }
 
     preg_match_all('/(?:https?:\/\/|www\.)/i', $cleanMessage, $urlMatches);
     if (count($urlMatches[0]) > 2) {
-        return $redirectResponse->withErrors([
-            'message' => __('ui.memorial.messages.too_many_links'),
-        ]);
+        return $rejectTribute(__('ui.memorial.messages.too_many_links'));
     }
 
     $normalizedEmail = mb_strtolower($validated['author_email']);
@@ -320,9 +337,7 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
         ->exists();
 
     if ($hasRecentDuplicate) {
-        return $redirectResponse->withErrors([
-            'message' => __('ui.memorial.messages.duplicate'),
-        ]);
+        return $rejectTribute(__('ui.memorial.messages.duplicate'));
     }
 
     $turnstileSiteKey = (string) config('services.turnstile.site_key');
@@ -331,9 +346,7 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
     if ($turnstileSiteKey !== '' && $turnstileSecretKey !== '') {
         $turnstileToken = (string) $request->input('cf-turnstile-response', '');
         if ($turnstileToken === '') {
-            return $redirectResponse->withErrors([
-                'message' => __('ui.memorial.messages.captcha_required'),
-            ]);
+            return $rejectTribute(__('ui.memorial.messages.captcha_required'));
         }
 
         try {
@@ -346,14 +359,10 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
                 ]);
 
             if (!$turnstileVerifyResponse->ok() || !$turnstileVerifyResponse->json('success')) {
-                return $redirectResponse->withErrors([
-                    'message' => __('ui.memorial.messages.captcha_failed'),
-                ]);
+                return $rejectTribute(__('ui.memorial.messages.captcha_failed'));
             }
         } catch (\Throwable $exception) {
-            return $redirectResponse->withErrors([
-                'message' => __('ui.memorial.messages.captcha_unavailable'),
-            ]);
+            return $rejectTribute(__('ui.memorial.messages.captcha_unavailable'));
         }
     }
 
