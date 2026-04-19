@@ -3,19 +3,25 @@
 namespace Tests\Unit\Services\Analytics;
 
 use App\Services\Analytics\GTMService;
+use App\Services\Security\SuspiciousTrafficDetector;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Tests\TestCase;
 
 class GTMServiceTest extends TestCase
 {
-    private function createService(array $config = []): GTMService
+    private function createService(array $config = [], bool $suppressAnalytics = false): GTMService
     {
         $configRepository = $this->createMock(ConfigRepository::class);
         $configRepository->method('get')->willReturnCallback(function ($key, $default = null) use ($config) {
             return $config[$key] ?? $default;
         });
 
-        return new GTMService($configRepository);
+        $suspiciousTrafficDetector = $this->createMock(SuspiciousTrafficDetector::class);
+        $suspiciousTrafficDetector
+            ->method('shouldSuppressAnalytics')
+            ->willReturn($suppressAnalytics);
+
+        return new GTMService($configRepository, $suspiciousTrafficDetector);
     }
 
     public function test_get_container_id_returns_null_in_local_environment(): void
@@ -79,6 +85,17 @@ class GTMServiceTest extends TestCase
         ]);
 
         $this->assertTrue($service->isEnabled());
+    }
+
+    public function test_is_enabled_returns_false_for_suspicious_traffic(): void
+    {
+        $service = $this->createService([
+            'app.env' => 'production',
+            'analytics.gtm.enabled' => true,
+            'analytics.gtm.container_id' => 'GTM-TEST123',
+        ], true);
+
+        $this->assertFalse($service->isEnabled());
     }
 
     public function test_is_debug_mode_returns_correct_value(): void

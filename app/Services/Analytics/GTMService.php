@@ -3,11 +3,13 @@
 namespace App\Services\Analytics;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use App\Services\Security\SuspiciousTrafficDetector;
 
 class GTMService
 {
     public function __construct(
-        private ConfigRepository $config
+        private ConfigRepository $config,
+        private SuspiciousTrafficDetector $suspiciousTrafficDetector
     ) {}
 
     /**
@@ -30,6 +32,10 @@ class GTMService
     {
         // GTM is disabled in development environment
         if ($this->config->get('app.env') === 'local') {
+            return false;
+        }
+
+        if ($this->suspiciousTrafficDetector->shouldSuppressAnalytics()) {
             return false;
         }
 

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services\Analytics;
 
 use App\Services\Analytics\GA4Service;
+use App\Services\Security\SuspiciousTrafficDetector;
 use Tests\TestCase;
 
 class GA4ServiceTest extends TestCase
@@ -64,5 +65,21 @@ class GA4ServiceTest extends TestCase
 
         $this->assertFalse($service->shouldLoadDirectScript());
     }
-}
 
+    public function test_is_enabled_returns_false_for_suspicious_traffic(): void
+    {
+        $detector = $this->createMock(SuspiciousTrafficDetector::class);
+        $detector->method('shouldSuppressAnalytics')->willReturn(true);
+        $this->app->instance(SuspiciousTrafficDetector::class, $detector);
+
+        config([
+            'app.env' => 'production',
+            'analytics.ga4.enabled' => true,
+            'analytics.ga4.measurement_id' => 'G-TEST123',
+        ]);
+
+        $service = app(GA4Service::class);
+
+        $this->assertFalse($service->isEnabled());
+    }
+}

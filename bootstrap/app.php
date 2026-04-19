@@ -106,6 +106,14 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Forbidden'
+                ], 403);
+            }
+        });
+
         $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -169,6 +177,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException ||
                 $e instanceof \Illuminate\Auth\AuthenticationException ||
                 $e instanceof \Illuminate\Auth\Access\AuthorizationException ||
+                $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException ||
                 $e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException ||
                 $e instanceof \Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException ||
                 $e instanceof \Illuminate\Http\Exceptions\HttpResponseException ||

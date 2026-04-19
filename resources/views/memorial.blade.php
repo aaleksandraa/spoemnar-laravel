@@ -54,6 +54,13 @@
     const memorialImages = @json($galleryImageUrls);
     let currentImageIndex = 0;
     const memorialUrl = @json(route('memorial.profile', ['locale' => $currentLocale, 'slug' => $memorial->slug]));
+    const memorialOwnerId = @json((string) $memorial->user_id);
+    const tributeModerationLabels = {
+        deleting: @json(__('ui.memorial.deleting_message')),
+        confirm: @json(__('ui.memorial.delete_message_confirm')),
+        success: @json(__('ui.memorial.delete_message_success')),
+        failed: @json(__('ui.memorial.delete_message_failed')),
+    };
 
     // Track memorial profile view
     if (window.eventTracker) {
@@ -120,14 +127,6 @@
         if (event.key === 'ArrowLeft') previousImage(event);
     });
 
-    // Set timestamp for anti-spam protection
-    document.addEventListener('DOMContentLoaded', function() {
-        const timestampField = document.getElementById('timestamp');
-        if (timestampField) {
-            timestampField.value = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
-        }
-    });
-
     // Track tribute submission
     function handleTributeSubmit(event) {
         if (window.eventTracker) {
@@ -138,6 +137,152 @@
             });
         }
     }
+
+    function isAdminUser(user) {
+        const relationAdmin = Array.isArray(user?.roles)
+            ? user.roles.some((role) => (typeof role === 'string' ? role === 'admin' : role?.role === 'admin'))
+            : false;
+
+        return relationAdmin || user?.role === 'admin';
+    }
+
+    function showTributeActionMessage(type, text) {
+        const messageBox = document.getElementById('tributeActionMessage');
+        if (!messageBox) {
+            return;
+        }
+
+        messageBox.classList.remove(
+            'hidden',
+            'border-red-200',
+            'bg-red-50',
+            'text-red-700',
+            'border-green-200',
+            'bg-green-50',
+            'text-green-800'
+        );
+
+        if (type === 'error') {
+            messageBox.classList.add('border-red-200', 'bg-red-50', 'text-red-700');
+        } else {
+            messageBox.classList.add('border-green-200', 'bg-green-50', 'text-green-800');
+        }
+
+        messageBox.textContent = text;
+    }
+
+    function updateTributeEmptyState() {
+        const tributeList = document.getElementById('tributeList');
+        const emptyState = document.getElementById('tributeEmptyState');
+        if (!tributeList || !emptyState) {
+            return;
+        }
+
+        const remainingTributes = tributeList.querySelectorAll('[data-tribute-item]');
+        emptyState.classList.toggle('hidden', remainingTributes.length !== 0);
+    }
+
+    async function deleteTribute(button) {
+        const tributeId = String(button?.dataset?.tributeId || '').trim();
+        if (!button || tributeId === '') {
+            return;
+        }
+
+        if (!window.confirm(tributeModerationLabels.confirm)) {
+            return;
+        }
+
+        const token = localStorage.getItem('auth_token') || '';
+        if (token === '') {
+            showTributeActionMessage('error', tributeModerationLabels.failed);
+            return;
+        }
+
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = tributeModerationLabels.deleting;
+        button.classList.add('opacity-70', 'cursor-not-allowed');
+
+        try {
+            const response = await fetch(`/api/v1/tributes/${tributeId}`, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Delete failed with status ${response.status}`);
+            }
+
+            const tributeCard = button.closest('[data-tribute-item]');
+            if (tributeCard) {
+                tributeCard.remove();
+            }
+
+            updateTributeEmptyState();
+            showTributeActionMessage('success', tributeModerationLabels.success);
+        } catch (_error) {
+            button.disabled = false;
+            button.textContent = originalLabel;
+            button.classList.remove('opacity-70', 'cursor-not-allowed');
+            showTributeActionMessage('error', tributeModerationLabels.failed);
+        }
+    }
+
+    async function initializeTributeModeration() {
+        const tributeDeleteButtons = Array.from(document.querySelectorAll('[data-tribute-delete]'));
+        if (!tributeDeleteButtons.length) {
+            return;
+        }
+
+        const token = localStorage.getItem('auth_token') || '';
+        if (token === '') {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/me', {
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const payload = await response.json();
+            const user = payload?.user || null;
+            if (!user) {
+                return;
+            }
+
+            const canModerateTributes = String(user.id || '') === memorialOwnerId || isAdminUser(user);
+            if (!canModerateTributes) {
+                return;
+            }
+
+            tributeDeleteButtons.forEach((button) => {
+                button.classList.remove('hidden');
+                button.addEventListener('click', () => deleteTribute(button));
+            });
+        } catch (_error) {
+            return;
+        }
+    }
+
+    // Set timestamp for anti-spam protection and initialize tribute moderation
+    document.addEventListener('DOMContentLoaded', function() {
+        const timestampField = document.getElementById('timestamp');
+        if (timestampField) {
+            timestampField.value = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
+        }
+
+        initializeTributeModeration();
+    });
 </script>
 @endpush
 
@@ -377,6 +522,8 @@
                     </div>
                 @endif
 
+                <div id="tributeActionMessage" class="hidden mb-6 p-4 rounded-lg border text-sm"></div>
+
                 @php
                     $formRenderedAt = now()->timestamp;
                     $formSignature = hash_hmac(
@@ -488,9 +635,9 @@
                     </button>
                 </form>
 
-                <div class="space-y-4">
-                    @forelse($memorial->tributes as $tribute)
-                        <article class="border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div id="tributeList" class="space-y-4">
+                    @foreach($memorial->tributes as $tribute)
+                        <article class="border border-border rounded-lg p-4 hover:shadow-md transition-shadow" data-tribute-item>
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <p class="font-semibold text-primary">
@@ -503,14 +650,21 @@
                                         {{ $tribute->created_at ? $tribute->created_at->translatedFormat('j. F Y.') : '' }}
                                     </p>
                                 </div>
+                                <button
+                                    type="button"
+                                    data-tribute-delete
+                                    data-tribute-id="{{ $tribute->id }}"
+                                    class="hidden inline-flex items-center justify-center px-3 h-9 rounded-lg border border-border text-sm font-medium hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-colors"
+                                >
+                                    {{ __('ui.memorial.delete_message') }}
+                                </button>
                             </div>
                             <p class="mt-3 text-foreground leading-relaxed">{{ $tribute->message }}</p>
                         </article>
-                    @empty
-                        <article class="border border-dashed border-border rounded-lg py-12 text-center">
-                            <p class="text-muted-foreground">{{ __('ui.memorial.no_tributes') }}</p>
-                        </article>
-                    @endforelse
+                    @endforeach
+                    <article id="tributeEmptyState" class="border border-dashed border-border rounded-lg py-12 text-center {{ $memorial->tributes->isNotEmpty() ? 'hidden' : '' }}">
+                        <p class="text-muted-foreground">{{ __('ui.memorial.no_tributes') }}</p>
+                    </article>
                 </div>
             </div>
         </section>

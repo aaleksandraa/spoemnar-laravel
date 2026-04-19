@@ -3,12 +3,14 @@
 namespace App\Services\Analytics;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use App\Services\Security\SuspiciousTrafficDetector;
 
 class GA4Service
 {
     public function __construct(
         private ConfigRepository $config,
-        private GTMService $gtmService
+        private GTMService $gtmService,
+        private SuspiciousTrafficDetector $suspiciousTrafficDetector
     ) {}
 
     /**
@@ -27,6 +29,10 @@ class GA4Service
     public function isEnabled(): bool
     {
         if ($this->config->get('app.env') === 'local') {
+            return false;
+        }
+
+        if ($this->suspiciousTrafficDetector->shouldSuppressAnalytics()) {
             return false;
         }
 
@@ -63,4 +69,3 @@ class GA4Service
         return (bool) $this->config->get('analytics.ga4.send_page_view', false);
     }
 }
-

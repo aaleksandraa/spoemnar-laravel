@@ -143,4 +143,31 @@ return [
         ],
     ],
 
+    'analytics_bot_filter' => [
+        'enabled' => env('ANALYTICS_BOT_FILTER_ENABLED', true),
+        'signatures' => [
+            'bot',
+            'crawl',
+            'spider',
+            'headlesschrome',
+            'phantomjs',
+            'selenium',
+            'playwright',
+            'puppeteer',
+            'curl/',
+            'wget/',
+            'python-requests',
+            'python-urllib',
+            'aiohttp',
+            'go-http-client',
+            'axios',
+            'node-fetch',
+            'postmanruntime',
+            'java/',
+            'libwww-perl',
+            'scrapy',
+            'okhttp',
+        ],
+    ],
+
 ];
