@@ -17,4 +17,15 @@ return [
         'line_3' => 'Se non hai richiesto il reset, puoi ignorare questa email.',
         'cta' => 'Reimposta password',
     ],
+    'tribute_notification' => [
+        'subject' => 'Nuovo messaggio di ricordo per :memorial',
+        'greeting' => 'Ciao :name,',
+        'line_1' => 'Sul memoriale ":memorial" e stato lasciato un nuovo messaggio di ricordo.',
+        'line_2' => 'Di seguito trovi i dettagli del nuovo messaggio.',
+        'author_name' => 'Mittente',
+        'author_email' => 'Email',
+        'message_label' => 'Messaggio',
+        'cta' => 'Apri memoriale',
+        'footer' => 'Hai ricevuto questa notifica perche sei il proprietario di questo memoriale.',
+    ],
 ];

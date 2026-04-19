@@ -19,6 +19,7 @@ class Profile extends Model
         'user_id',
         'email',
         'full_name',
+        'preferred_locale',
     ];
 
     /**

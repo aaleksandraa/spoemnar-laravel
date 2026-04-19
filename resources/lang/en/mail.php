@@ -17,4 +17,15 @@ return [
         'line_3' => 'If you did not request a password reset, you can ignore this email.',
         'cta' => 'Reset password',
     ],
+    'tribute_notification' => [
+        'subject' => 'New memory message for :memorial',
+        'greeting' => 'Hello :name,',
+        'line_1' => 'A new memory message was left on the memorial ":memorial".',
+        'line_2' => 'The details of the new message are below.',
+        'author_name' => 'Sender',
+        'author_email' => 'Email',
+        'message_label' => 'Message',
+        'cta' => 'Open memorial',
+        'footer' => 'You received this notification because you are the owner of this memorial.',
+    ],
 ];

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTributeRequest;
 use App\Models\Memorial;
 use App\Models\Tribute;
+use App\Services\TributeService;
 use App\Services\SanitizationService;
+use App\Support\LocaleResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,7 +17,8 @@ class TributeController extends Controller
      * Create a new controller instance.
      */
     public function __construct(
-        private SanitizationService $sanitizationService
+        private SanitizationService $sanitizationService,
+        private TributeService $tributeService,
     ) {}
 
     /**
@@ -49,11 +52,13 @@ class TributeController extends Controller
         // Use validated() to ensure only validated fields are used
         $validated = $request->validated();
 
-        $tribute = $memorial->tributes()->create([
-            'author_name' => $validated['author_name'],
-            'author_email' => $validated['author_email'],
-            'message' => $this->sanitizationService->sanitizeHtml($validated['message']),
-        ]);
+        $tribute = $this->tributeService->createForMemorial(
+            memorial: $memorial,
+            authorName: $validated['author_name'],
+            authorEmail: $validated['author_email'],
+            message: $this->sanitizationService->sanitizeHtml($validated['message']),
+            mailLocale: LocaleResolver::detectFromRequest($request),
+        );
 
         return response()->json([
             'tribute' => new \App\Http\Resources\TributeResource($tribute)
@@ -78,4 +83,3 @@ class TributeController extends Controller
         return response()->json(null, 204);
     }
 }
-

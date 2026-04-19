@@ -17,4 +17,15 @@ return [
         'line_3' => 'Ako niste trazili reset lozinke, zanemarite ovaj email.',
         'cta' => 'Resetujte lozinku',
     ],
+    'tribute_notification' => [
+        'subject' => 'Nova poruka secanja za :memorial',
+        'greeting' => 'Postovani :name,',
+        'line_1' => 'Na memorijalu ":memorial" ostavljena je nova poruka secanja.',
+        'line_2' => 'U nastavku su detalji nove poruke.',
+        'author_name' => 'Posiljalac',
+        'author_email' => 'Email',
+        'message_label' => 'Poruka',
+        'cta' => 'Otvorite memorijal',
+        'footer' => 'Ovu obavest ste primili jer ste vlasnik navedenog memorijala.',
+    ],
 ];

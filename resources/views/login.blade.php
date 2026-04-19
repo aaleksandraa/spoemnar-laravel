@@ -81,6 +81,7 @@
         const form = document.getElementById('loginForm');
         const submit = document.getElementById('loginSubmit');
         const message = document.getElementById('loginMessage');
+        const locale = @json(app()->getLocale());
 
         function showMessage(type, text) {
             message.classList.remove('hidden', 'border-red-200', 'bg-red-50', 'text-red-700', 'border-green-200', 'bg-green-50', 'text-green-700');
@@ -102,6 +103,7 @@
             const payload = {
                 email: document.getElementById('email').value.trim(),
                 password: document.getElementById('password').value,
+                locale,
             };
 
             try {

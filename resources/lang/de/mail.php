@@ -17,4 +17,15 @@ return [
         'line_3' => 'Falls Sie diese Anfrage nicht gestellt haben, ignorieren Sie diese E-Mail.',
         'cta' => 'Passwort zuruecksetzen',
     ],
+    'tribute_notification' => [
+        'subject' => 'Neue Erinnerungsnachricht fuer :memorial',
+        'greeting' => 'Hallo :name,',
+        'line_1' => 'Auf der Gedenkseite ":memorial" wurde eine neue Erinnerungsnachricht hinterlassen.',
+        'line_2' => 'Die Details der neuen Nachricht finden Sie unten.',
+        'author_name' => 'Absender',
+        'author_email' => 'E-Mail',
+        'message_label' => 'Nachricht',
+        'cta' => 'Gedenkseite oeffnen',
+        'footer' => 'Sie haben diese Benachrichtigung erhalten, weil Sie Eigentemer dieser Gedenkseite sind.',
+    ],
 ];

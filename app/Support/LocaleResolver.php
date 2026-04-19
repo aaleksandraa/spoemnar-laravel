@@ -83,9 +83,11 @@ class LocaleResolver
             return $countryLocale;
         }
 
-        $sessionLocale = self::supportedLocaleFromCandidate($request->session()->get('locale'));
-        if ($sessionLocale !== null && $sessionLocale !== 'en') {
-            return $sessionLocale;
+        if ($request->hasSession()) {
+            $sessionLocale = self::supportedLocaleFromCandidate($request->session()->get('locale'));
+            if ($sessionLocale !== null && $sessionLocale !== 'en') {
+                return $sessionLocale;
+            }
         }
 
         $cookieLocale = self::supportedLocaleFromCandidate($request->cookie('locale'));

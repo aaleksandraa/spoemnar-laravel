@@ -287,6 +287,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         const token = localStorage.getItem('auth_token') || '';
         const homeUrl = @json(route('home'));
+        const currentLocale = @json($currentLocale);
 
         const guestDesktop = document.getElementById('headerGuestDesktop');
         const authDesktop = document.getElementById('headerAuthDesktop');
@@ -334,7 +335,7 @@
         }
 
         async function fetchMe() {
-            const response = await fetch('/api/v1/me', {
+            const response = await fetch(`/api/v1/me?lang=${encodeURIComponent(currentLocale)}`, {
                 headers: {
                     Accept: 'application/json',
                     Authorization: `Bearer ${token}`,

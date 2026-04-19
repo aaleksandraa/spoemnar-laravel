@@ -33,7 +33,7 @@ class AuthController extends Controller
         $preferredLocale = $this->resolvePreferredLocale((string) $request->input('locale', ''));
 
         try {
-            ['user' => $user, 'token' => $token] = DB::transaction(function () use ($validated): array {
+            ['user' => $user, 'token' => $token] = DB::transaction(function () use ($validated, $preferredLocale): array {
                 $user = User::create([
                     'email' => $validated['email'],
                     'password' => Hash::make($validated['password']),
@@ -48,6 +48,7 @@ class AuthController extends Controller
                 $user->profile()->create([
                     'email' => $validated['email'],
                     'full_name' => $validated['full_name'] ?? null,
+                    'preferred_locale' => $preferredLocale,
                 ]);
 
                 $token = $user->createToken('auth_token')->plainTextToken;
@@ -107,6 +108,8 @@ class AuthController extends Controller
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
+
+        $this->syncPreferredLocale($user, $this->explicitPreferredLocaleFromRequest($request));
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -225,6 +228,8 @@ class AuthController extends Controller
             'role' => 'user',
         ]);
 
+        $this->syncPreferredLocale($request->user(), $this->explicitPreferredLocaleFromRequest($request));
+
         return response()->json([
             'user' => $request->user()->load('profile', 'roles'),
         ]);
@@ -254,6 +259,52 @@ class AuthController extends Controller
         $normalized = LocaleResolver::normalizeLocale($candidate);
 
         return LocaleResolver::isSupported($normalized) ? $normalized : app()->getLocale();
+    }
+
+    private function explicitPreferredLocaleFromRequest(Request $request): ?string
+    {
+        $candidates = [
+            $request->input('locale'),
+            $request->query('lang'),
+            $request->route('locale'),
+            $request->header('X-Locale'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (!is_string($candidate)) {
+                continue;
+            }
+
+            $normalized = LocaleResolver::normalizeLocale($candidate);
+            if (LocaleResolver::isSupported($normalized)) {
+                return $normalized;
+            }
+        }
+
+        return null;
+    }
+
+    private function syncPreferredLocale(User $user, ?string $preferredLocale): void
+    {
+        if ($preferredLocale === null) {
+            return;
+        }
+
+        $profile = $user->profile;
+        if (!$profile) {
+            $profile = $user->profile()->create([
+                'email' => $user->email,
+                'preferred_locale' => $preferredLocale,
+            ]);
+        }
+
+        if ($profile->preferred_locale === $preferredLocale) {
+            return;
+        }
+
+        $profile->forceFill([
+            'preferred_locale' => $preferredLocale,
+        ])->save();
     }
 
     private function passwordResetStatusMessage(string $status): string

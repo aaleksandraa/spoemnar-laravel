@@ -5,6 +5,7 @@ use App\Models\Country;
 use App\Models\HeroSettings;
 use App\Models\Memorial;
 use App\Models\Place;
+use App\Services\TributeService;
 use App\Support\LocaleResolver;
 use App\Support\MemorialSearch;
 use App\Support\TributeMathChallenge;
@@ -366,11 +367,13 @@ $storeTribute = static function (Request $request, Memorial $memorial, string $l
         }
     }
 
-    $memorial->tributes()->create([
-        'author_name' => $validated['author_name'],
-        'author_email' => $normalizedEmail,
-        'message' => $cleanMessage,
-    ]);
+    app(TributeService::class)->createForMemorial(
+        memorial: $memorial,
+        authorName: $validated['author_name'],
+        authorEmail: $normalizedEmail,
+        message: $cleanMessage,
+        mailLocale: $locale,
+    );
 
     return $redirectResponse->with('success', __('ui.memorial.messages.success'));
 };

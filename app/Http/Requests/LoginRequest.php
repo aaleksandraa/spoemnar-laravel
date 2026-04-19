@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\AppliesRequestLocale;
+use App\Support\LocaleResolver;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class LoginRequest extends FormRequest
 {
@@ -32,6 +34,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => 'required|email|max:255',
             'password' => 'required|string',
+            'locale' => ['nullable', 'string', Rule::in(LocaleResolver::supportedLocales())],
         ];
     }
 
