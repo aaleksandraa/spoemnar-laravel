@@ -266,7 +266,7 @@
             }
 
             tributeDeleteButtons.forEach((button) => {
-                button.classList.remove('hidden');
+                button.hidden = false;
                 button.addEventListener('click', () => deleteTribute(button));
             });
         } catch (_error) {
@@ -652,9 +652,10 @@
                                 </div>
                                 <button
                                     type="button"
+                                    hidden
                                     data-tribute-delete
                                     data-tribute-id="{{ $tribute->id }}"
-                                    class="hidden inline-flex items-center justify-center px-3 h-9 rounded-lg border border-border text-sm font-medium hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-colors"
+                                    class="inline-flex items-center justify-center px-3 h-9 rounded-lg border border-border text-sm font-medium hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-colors"
                                 >
                                     {{ __('ui.memorial.delete_message') }}
                                 </button>
