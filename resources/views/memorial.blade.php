@@ -60,36 +60,57 @@
     @if($isCandleFeatureEnabled)
         <style>
             @keyframes memorial-candle-flicker {
-                0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.92; }
-                25% { transform: translate3d(1px, -2px, 0) scale(1.03, 0.98); opacity: 1; }
-                50% { transform: translate3d(-1px, 1px, 0) scale(0.98, 1.02); opacity: 0.88; }
-                75% { transform: translate3d(1px, 0, 0) scale(1.01, 0.99); opacity: 0.97; }
+                0%, 100% { transform: translate3d(0, 0, 0) scale(1) rotate(-1deg); opacity: 0.92; }
+                20% { transform: translate3d(1px, -2px, 0) scale(1.07, 0.95) rotate(1deg); opacity: 1; }
+                45% { transform: translate3d(-1px, -3px, 0) scale(0.96, 1.06) rotate(-2deg); opacity: 0.84; }
+                70% { transform: translate3d(1px, -1px, 0) scale(1.04, 0.97) rotate(2deg); opacity: 0.98; }
             }
 
             @keyframes memorial-candle-glow {
-                0%, 100% { opacity: 0.45; transform: scale(0.92); }
-                50% { opacity: 0.75; transform: scale(1.08); }
+                0%, 100% { opacity: 0.4; transform: scale(0.88); }
+                50% { opacity: 0.92; transform: scale(1.18); }
+            }
+
+            @keyframes memorial-candle-smoke {
+                0% { opacity: 0.18; transform: translate3d(0, 0, 0) scale(0.88); }
+                45% { opacity: 0.48; transform: translate3d(-2px, -10px, 0) scale(1.04); }
+                100% { opacity: 0; transform: translate3d(3px, -18px, 0) scale(1.22); }
             }
 
             .memorial-candle-flame,
             .memorial-candle-inner-flame,
-            .memorial-candle-glow {
-                transition: opacity 700ms ease, transform 700ms ease, filter 700ms ease;
+            .memorial-candle-glow,
+            .memorial-candle-halo,
+            .memorial-candle-smoke,
+            .memorial-candle-body {
+                transition: opacity 700ms ease, transform 700ms ease, filter 700ms ease, box-shadow 700ms ease;
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-flame {
-                animation: memorial-candle-flicker 5.2s ease-in-out infinite;
+                animation: memorial-candle-flicker 2.6s ease-in-out infinite;
                 opacity: 1;
+                filter: saturate(1.08);
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-inner-flame {
-                animation: memorial-candle-flicker 4.2s ease-in-out infinite reverse;
+                animation: memorial-candle-flicker 2.1s ease-in-out infinite reverse;
                 opacity: 1;
             }
 
-            .memorial-candle-section[data-state="active"] .memorial-candle-glow {
-                animation: memorial-candle-glow 5.8s ease-in-out infinite;
+            .memorial-candle-section[data-state="active"] .memorial-candle-glow,
+            .memorial-candle-section[data-state="active"] .memorial-candle-halo {
+                animation: memorial-candle-glow 3.3s ease-in-out infinite;
                 opacity: 1;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-smoke {
+                opacity: 0;
+                transform: translate3d(0, 6px, 0) scale(0.72);
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-body {
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 12px 26px rgba(193,149,74,0.16);
+                filter: saturate(1.02);
             }
 
             .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
@@ -97,10 +118,41 @@
             .memorial-candle-section[data-state="inactive"] .memorial-candle-inner-flame,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-inner-flame,
             .memorial-candle-section[data-state="inactive"] .memorial-candle-glow,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-glow {
-                opacity: 0.12;
-                transform: translate3d(0, 8px, 0) scale(0.82);
-                filter: saturate(0.4);
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-glow,
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-halo,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-halo {
+                opacity: 0;
+                transform: translate3d(0, 8px, 0) scale(0.6);
+                filter: saturate(0.3);
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-flame,
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-inner-flame,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-inner-flame {
+                opacity: 0;
+                transform: translate3d(0, 10px, 0) scale(0.52);
+                filter: saturate(0.2) blur(1px);
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-smoke,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-smoke {
+                animation: memorial-candle-smoke 3.8s ease-out infinite;
+                opacity: 0.58;
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-body,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-body {
+                filter: saturate(0.82) brightness(0.98);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), 0 8px 18px rgba(120,92,45,0.08);
+            }
+
+            .memorial-candle-message-disclosure summary::-webkit-details-marker {
+                display: none;
+            }
+
+            .memorial-candle-message-disclosure[open] summary svg {
+                transform: rotate(180deg);
             }
         </style>
     @endif
@@ -134,6 +186,9 @@
         messageLabel: @json(__('ui.memorial.candle.message_label')),
         messagePlaceholder: @json(__('ui.memorial.candle.message_placeholder')),
         messageHint: @json(__('ui.memorial.candle.message_hint')),
+        messageToggle: @json(__('ui.memorial.candle.message_toggle')),
+        visualStatusActive: @json(__('ui.memorial.candle.visual_status_active')),
+        visualStatusInactive: @json(__('ui.memorial.candle.visual_status_inactive')),
         wallTitle: @json(__('ui.memorial.candle.wall_title')),
         wallEmpty: @json(__('ui.memorial.candle.wall_empty')),
         familyTitle: @json(__('ui.memorial.candle.family_title')),
@@ -263,6 +318,25 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function buildCandleMessageDisclosure(message, spacingClass = 'mt-2') {
+        const safeMessage = String(message || '').trim();
+        if (safeMessage === '') {
+            return '';
+        }
+
+        return `
+            <details class="memorial-candle-message-disclosure ${spacingClass} rounded-xl border border-border/70 bg-white/70 px-3 py-2">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800/90">
+                    <span>${escapeHtml(memorialCandleLabels.messageToggle)}</span>
+                    <svg class="h-3.5 w-3.5 shrink-0 transition-transform duration-300" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </summary>
+                <p class="mt-3 text-sm leading-relaxed text-muted-foreground">${escapeHtml(safeMessage)}</p>
+            </details>
+        `;
     }
 
     function formatCandleDate(value) {
@@ -400,10 +474,11 @@
     function renderMemorialCandleFamily(summary) {
         const wrap = document.getElementById('memorialFamilyCandleWrap');
         const lighter = document.getElementById('memorialFamilyCandleLighter');
+        const messageWrap = document.getElementById('memorialFamilyCandleMessageWrap');
         const message = document.getElementById('memorialFamilyCandleMessage');
         const meta = document.getElementById('memorialFamilyCandleMeta');
         const premiumBadge = document.getElementById('memorialFamilyCandlePremiumBadge');
-        if (!wrap || !lighter || !message || !meta || !premiumBadge) {
+        if (!wrap || !lighter || !messageWrap || !message || !meta || !premiumBadge) {
             return;
         }
 
@@ -413,6 +488,7 @@
 
         if (!(familyEnabled && familyCandle)) {
             lighter.textContent = '';
+            messageWrap.hidden = true;
             message.textContent = '';
             meta.textContent = '';
             premiumBadge.hidden = true;
@@ -420,6 +496,7 @@
         }
 
         lighter.textContent = String(familyCandle.lighterName || '');
+        messageWrap.hidden = !Boolean(familyCandle.message);
         message.textContent = String(familyCandle.message || '');
         premiumBadge.hidden = !familyCandle.isPremium;
 
@@ -470,7 +547,7 @@
                         <div class="flex flex-wrap items-center gap-2">${badges.join('')}</div>
                         <p class="mt-2 text-sm font-semibold text-foreground">${escapeHtml(candle?.lighterName || '')}</p>
                         <p class="mt-1 text-xs text-muted-foreground">${escapeHtml(formatCandleDate(candle?.litAt))}</p>
-                        <p class="mt-2 text-sm leading-relaxed text-muted-foreground">${escapeHtml(candle?.message || '')}</p>
+                        ${buildCandleMessageDisclosure(candle?.message)}
                     </div>
                 </div>
             `;
@@ -501,7 +578,7 @@
             item.innerHTML = `
                 <p class="text-sm font-medium text-foreground">${escapeHtml(lighter?.lighterName || '')}</p>
                 <p class="mt-1 text-xs text-muted-foreground">${escapeHtml(litAt)}</p>
-                <p class="mt-2 text-sm text-muted-foreground">${escapeHtml(lighter?.message || '')}</p>
+                ${buildCandleMessageDisclosure(lighter?.message)}
             `;
             recentList.appendChild(item);
         });
@@ -552,6 +629,7 @@
         const subtitle = document.getElementById('memorialCandleSubtitle');
         const countBadge = document.getElementById('memorialCandleCountBadge');
         const countdownWrap = document.getElementById('memorialCandleCountdownWrap');
+        const visualStatus = document.getElementById('memorialCandleVisualStatus');
         const currentWrap = document.getElementById('memorialCandleCurrentLighterWrap');
         const currentLighter = document.getElementById('memorialCandleCurrentLighter');
         const currentMessageWrap = document.getElementById('memorialCandleCurrentMessageWrap');
@@ -575,6 +653,19 @@
 
         if (countBadge) {
             countBadge.textContent = `${totalCandles} ${memorialCandleLabels.countLabel}`;
+        }
+
+        if (visualStatus) {
+            const isLit = Boolean(primaryVisibleCandle);
+            visualStatus.textContent = isLit
+                ? memorialCandleLabels.visualStatusActive
+                : memorialCandleLabels.visualStatusInactive;
+            visualStatus.classList.toggle('bg-amber-100', isLit);
+            visualStatus.classList.toggle('text-amber-900', isLit);
+            visualStatus.classList.toggle('border-amber-200', isLit);
+            visualStatus.classList.toggle('bg-stone-200/80', !isLit);
+            visualStatus.classList.toggle('text-stone-700', !isLit);
+            visualStatus.classList.toggle('border-stone-300/80', !isLit);
         }
 
         if (currentWrap && currentLighter && currentMessageWrap && currentMessage) {
@@ -1102,10 +1193,24 @@
                                         <p class="mt-1 text-sm text-muted-foreground">{{ __('ui.memorial.candle.family_subtitle') }}</p>
                                         <div class="mt-4 rounded-xl border border-border/60 bg-white/85 px-4 py-4">
                                             <p id="memorialFamilyCandleLighter" class="text-sm font-semibold text-foreground">{{ $familyCandle['lighterName'] ?? '' }}</p>
-                                            <p
-                                                id="memorialFamilyCandleMessage"
-                                                class="mt-2 text-sm leading-relaxed text-muted-foreground"
-                                            >{{ $familyCandle['message'] ?? '' }}</p>
+                                            <details
+                                                id="memorialFamilyCandleMessageWrap"
+                                                class="memorial-candle-message-disclosure mt-2 rounded-xl border border-border/70 bg-white/70 px-3 py-2"
+                                                @if(!($familyCandle['message'] ?? null))
+                                                    hidden
+                                                @endif
+                                            >
+                                                <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800/90">
+                                                    <span>{{ __('ui.memorial.candle.message_toggle') }}</span>
+                                                    <svg class="h-3.5 w-3.5 shrink-0 transition-transform duration-300" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                                        <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </summary>
+                                                <p
+                                                    id="memorialFamilyCandleMessage"
+                                                    class="mt-3 text-sm leading-relaxed text-muted-foreground"
+                                                >{{ $familyCandle['message'] ?? '' }}</p>
+                                            </details>
                                             <p id="memorialFamilyCandleMeta" class="mt-3 text-xs font-medium uppercase tracking-[0.22em] text-amber-800/90">
                                                 @if($familyCandle)
                                                     @if($familyCandle['isPermanent'] ?? false)
@@ -1118,29 +1223,38 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid gap-6 lg:grid-cols-[220px_1fr] lg:items-center">
-                                        <div class="flex flex-col items-center gap-4">
-                                            <div class="relative flex h-44 w-36 items-end justify-center">
-                                                <div class="memorial-candle-glow absolute bottom-24 h-16 w-16 rounded-full bg-amber-300/60 blur-2xl"></div>
-                                                <div class="absolute bottom-[7.3rem] h-5 w-1 rounded-full bg-stone-700/80"></div>
-                                                <div class="memorial-candle-flame absolute bottom-28 h-16 w-10 rounded-[999px_999px_999px_999px] bg-gradient-to-t from-amber-500 via-yellow-200 to-white shadow-[0_0_35px_rgba(245,172,59,0.55)]"></div>
-                                            <div class="memorial-candle-inner-flame absolute bottom-[7.7rem] h-9 w-5 rounded-[999px_999px_999px_999px] bg-gradient-to-t from-orange-300 via-yellow-100 to-white"></div>
-                                            <div class="relative h-28 w-16 overflow-hidden rounded-t-[2rem] rounded-b-lg border border-amber-100 bg-gradient-to-b from-white via-amber-50 to-amber-200 shadow-inner">
-                                                <div class="absolute inset-x-2 top-2 h-5 rounded-full bg-white/80"></div>
-                                                <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-amber-300/50 to-transparent"></div>
+                                    <div class="grid gap-6 lg:grid-cols-[170px_1fr] lg:items-center">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <div class="relative flex h-32 w-24 items-end justify-center">
+                                                <div class="memorial-candle-glow absolute bottom-16 h-12 w-12 rounded-full bg-amber-300/70 blur-2xl"></div>
+                                                <div class="memorial-candle-halo absolute bottom-[4.2rem] h-10 w-10 rounded-full bg-amber-200/60 blur-xl"></div>
+                                                <div class="memorial-candle-smoke absolute bottom-[4.6rem] h-10 w-5 rounded-full bg-stone-400/55 blur-[4px]"></div>
+                                                <div class="absolute bottom-[4.15rem] h-3.5 w-1 rounded-full bg-stone-700/80"></div>
+                                                <div class="memorial-candle-flame absolute bottom-[4.5rem] h-12 w-7 rounded-[999px_999px_999px_999px] bg-gradient-to-t from-amber-500 via-yellow-200 to-white shadow-[0_0_26px_rgba(245,172,59,0.58)]"></div>
+                                                <div class="memorial-candle-inner-flame absolute bottom-[4.85rem] h-7 w-3.5 rounded-[999px_999px_999px_999px] bg-gradient-to-t from-orange-300 via-yellow-100 to-white"></div>
+                                                <div class="memorial-candle-body relative h-20 w-12 overflow-hidden rounded-t-[1.4rem] rounded-b-lg border border-amber-100 bg-gradient-to-b from-white via-amber-50 to-amber-200 shadow-inner">
+                                                    <div class="absolute inset-x-1.5 top-2 h-4 rounded-full bg-white/80"></div>
+                                                    <div class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-amber-300/50 to-transparent"></div>
+                                                </div>
+                                                <div class="absolute bottom-0 h-3 w-20 rounded-full bg-stone-300/70 blur-md"></div>
                                             </div>
-                                            <div class="absolute bottom-0 h-4 w-28 rounded-full bg-stone-300/70 blur-md"></div>
-                                        </div>
 
-                                        <div class="text-center">
-                                            <p id="memorialCandleEyebrow" class="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700/80">
-                                                {{ $activeCandle ? __('ui.memorial.candle.eyebrow_active') : __('ui.memorial.candle.eyebrow_inactive') }}
+                                            <p
+                                                id="memorialCandleVisualStatus"
+                                                class="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] {{ $primaryVisibleCandle ? 'border-amber-200 bg-amber-100 text-amber-900' : 'border-stone-300/80 bg-stone-200/80 text-stone-700' }}"
+                                            >
+                                                {{ $primaryVisibleCandle ? __('ui.memorial.candle.visual_status_active') : __('ui.memorial.candle.visual_status_inactive') }}
                                             </p>
-                                            <p id="memorialCandleCountBadge" class="mt-2 text-sm text-muted-foreground">
-                                                {{ (int) ($candleSummary['totalCandles'] ?? 0) }} {{ __('ui.memorial.candle.count_label') }}
-                                            </p>
+
+                                            <div class="text-center">
+                                                <p id="memorialCandleEyebrow" class="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700/80">
+                                                    {{ $primaryVisibleCandle ? __('ui.memorial.candle.eyebrow_active') : __('ui.memorial.candle.eyebrow_inactive') }}
+                                                </p>
+                                                <p id="memorialCandleCountBadge" class="mt-2 text-sm text-muted-foreground">
+                                                    {{ (int) ($candleSummary['totalCandles'] ?? 0) }} {{ __('ui.memorial.candle.count_label') }}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
 
                                         <div class="space-y-4">
                                             <div>
@@ -1184,15 +1298,21 @@
                                                 <p id="memorialCandleCurrentLighter" class="mt-1 text-sm font-medium text-foreground">
                                                     {{ $primaryVisibleCandle['lighterName'] ?? '' }}
                                                 </p>
-                                                <p
+                                                <details
                                                     id="memorialCandleCurrentMessageWrap"
-                                                    class="mt-2 text-sm leading-relaxed text-muted-foreground"
+                                                    class="memorial-candle-message-disclosure mt-2 rounded-xl border border-border/70 bg-white/70 px-3 py-2"
                                                     @if(!($primaryVisibleCandle['message'] ?? null))
                                                         hidden
                                                     @endif
                                                 >
-                                                    <span id="memorialCandleCurrentMessage">{{ $primaryVisibleCandle['message'] ?? '' }}</span>
-                                                </p>
+                                                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800/90">
+                                                        <span>{{ __('ui.memorial.candle.message_toggle') }}</span>
+                                                        <svg class="h-3.5 w-3.5 shrink-0 transition-transform duration-300" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                                            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                                        </svg>
+                                                    </summary>
+                                                    <p id="memorialCandleCurrentMessage" class="mt-3 text-sm leading-relaxed text-muted-foreground">{{ $primaryVisibleCandle['message'] ?? '' }}</p>
+                                                </details>
                                             </div>
 
                                             <div
@@ -1253,7 +1373,17 @@
                                                                             {{ \Carbon\Carbon::parse($wallCandle['litAt'])->translatedFormat('d. M Y.') }}
                                                                         @endif
                                                                     </p>
-                                                                    <p class="mt-2 text-sm leading-relaxed text-muted-foreground">{{ $wallCandle['message'] ?? '' }}</p>
+                                                                    @if($wallCandle['message'] ?? null)
+                                                                        <details class="memorial-candle-message-disclosure mt-2 rounded-xl border border-border/70 bg-white/70 px-3 py-2">
+                                                                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800/90">
+                                                                                <span>{{ __('ui.memorial.candle.message_toggle') }}</span>
+                                                                                <svg class="h-3.5 w-3.5 shrink-0 transition-transform duration-300" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                                                                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                                                                </svg>
+                                                                            </summary>
+                                                                            <p class="mt-3 text-sm leading-relaxed text-muted-foreground">{{ $wallCandle['message'] ?? '' }}</p>
+                                                                        </details>
+                                                                    @endif
                                                                 </div>
                                                             </div>
                                                         </article>
@@ -1278,7 +1408,17 @@
                                                                     {{ \Carbon\Carbon::parse($lighter['litAt'])->translatedFormat('d. M Y.') }}
                                                                 @endif
                                                             </p>
-                                                            <p class="mt-2 text-sm text-muted-foreground">{{ $lighter['message'] ?? '' }}</p>
+                                                            @if($lighter['message'] ?? null)
+                                                                <details class="memorial-candle-message-disclosure mt-2 rounded-xl border border-border/70 bg-white/70 px-3 py-2">
+                                                                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800/90">
+                                                                        <span>{{ __('ui.memorial.candle.message_toggle') }}</span>
+                                                                        <svg class="h-3.5 w-3.5 shrink-0 transition-transform duration-300" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                                                            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                                                                        </svg>
+                                                                    </summary>
+                                                                    <p class="mt-3 text-sm text-muted-foreground">{{ $lighter['message'] ?? '' }}</p>
+                                                                </details>
+                                                            @endif
                                                         </li>
                                                     @endforeach
                                                 </ul>
