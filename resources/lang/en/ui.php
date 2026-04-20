@@ -305,6 +305,7 @@ return [
             'message_toggle' => 'Message of remembrance',
             'caption_active' => 'A memory that endures',
             'caption_inactive' => 'Light a candle',
+            'archive_toggle' => 'View the rest',
             'visual_status_active' => 'Burning',
             'visual_status_inactive' => 'Unlit',
             'wall_title' => 'Wall of candles',

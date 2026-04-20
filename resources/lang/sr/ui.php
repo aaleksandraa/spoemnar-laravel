@@ -305,6 +305,7 @@ return [
             'message_toggle' => 'Poruka secanja',
             'caption_active' => 'Secanje koje traje',
             'caption_inactive' => 'Upali svecu',
+            'archive_toggle' => 'Pogledaj ostale',
             'visual_status_active' => 'Gori',
             'visual_status_inactive' => 'Ugasena',
             'wall_title' => 'Zid sveca',

@@ -40,6 +40,7 @@ it('renders the digital candle module on the public memorial page when enabled',
     expect($content)->toContain('id="memorialCandleSection"');
     expect($content)->toContain('data-state="inactive"');
     expect($content)->toContain('id="memorialCandleVisualStatus"');
+    expect($content)->toContain('.memorial-candle-stage');
     expect($content)->toContain('bg-transparent');
     expect($content)->toContain('Svijeca sjecanja');
     expect($content)->toContain('Ugasena');
@@ -48,6 +49,8 @@ it('renders the digital candle module on the public memorial page when enabled',
     expect($content)->toContain('/api/v1/memorials/');
     expect($content)->toContain('id="memorialCandleComposer"');
     expect($content)->toContain('id="memorialCandleWallWrap"');
+    expect($content)->toContain('id="memorialCandleWallLatest"');
+    expect($content)->toContain('id="memorialCandleRecentLatest"');
     expect($content)->toContain('id="memorialFamilyManager"');
     expect($content)->not->toContain('ðŸ•¯');
 });

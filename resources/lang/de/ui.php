@@ -305,6 +305,7 @@ return [
             'message_toggle' => 'Erinnerungsbotschaft',
             'caption_active' => 'Erinnerung die bleibt',
             'caption_inactive' => 'Kerze anzuenden',
+            'archive_toggle' => 'Weitere anzeigen',
             'visual_status_active' => 'Brennt',
             'visual_status_inactive' => 'Erloschen',
             'wall_title' => 'Kerzenwand',

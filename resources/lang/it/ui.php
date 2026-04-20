@@ -305,6 +305,7 @@ return [
             'message_toggle' => 'Messaggio di ricordo',
             'caption_active' => 'Un ricordo che resta',
             'caption_inactive' => 'Accendi una candela',
+            'archive_toggle' => 'Mostra le altre',
             'visual_status_active' => 'Accesa',
             'visual_status_inactive' => 'Spenta',
             'wall_title' => 'Muro delle candele',

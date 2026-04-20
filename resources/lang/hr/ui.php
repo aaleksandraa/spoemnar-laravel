@@ -305,6 +305,7 @@ return [
             'message_toggle' => 'Poruka sjecanja',
             'caption_active' => 'Sjecanje koje traje',
             'caption_inactive' => 'Upali svijecu',
+            'archive_toggle' => 'Pogledaj ostale',
             'visual_status_active' => 'Gori',
             'visual_status_inactive' => 'Ugasena',
             'wall_title' => 'Zid svijeca',

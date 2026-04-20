@@ -32,6 +32,10 @@
     $primaryVisibleCandle = $activeCandle ?: $familyCandle;
     $recentCandleLighters = collect($candleSummary['recentLighters'] ?? []);
     $candleWallItems = collect($candleSummary['wallCandles'] ?? []);
+    $latestWallCandle = $candleWallItems->first();
+    $olderWallCandles = $candleWallItems->slice(1)->values();
+    $latestRecentCandle = $recentCandleLighters->first();
+    $olderRecentCandles = $recentCandleLighters->slice(1)->values();
     $anniversaryHighlight = is_array($candleSummary['anniversary'] ?? null) ? $candleSummary['anniversary'] : null;
     $isCandleFeatureEnabled = (bool) ($candleSummary['enabled'] ?? false);
 @endphp
@@ -43,7 +47,7 @@
 @section('og_image', $profileImageUrl ?: config('seo.meta.default_og_image', '/spomenar-pozadina.jpg'))
 @section('og_image_alt', $memorialFullName)
 
-@section('head')
+@push('head')
     {{-- Person Structured Data --}}
     <x-seo.structured-data type="person" :data="$memorial" />
 
@@ -283,6 +287,46 @@
                 box-shadow: 0 0 16px rgba(255,190,80,0.2);
             }
 
+            .memorial-candle-disclosure {
+                border-top: 1px solid rgba(191, 144, 66, 0.12);
+                padding-top: 0.85rem;
+            }
+
+            .memorial-candle-disclosure-summary {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.55rem;
+                cursor: pointer;
+                list-style: none;
+                font-size: 0.8rem;
+                font-weight: 600;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: #b56918;
+                user-select: none;
+            }
+
+            .memorial-candle-disclosure-summary::-webkit-details-marker {
+                display: none;
+            }
+
+            .memorial-candle-disclosure-summary::after {
+                content: '+';
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.1rem;
+                height: 1.1rem;
+                border-radius: 9999px;
+                border: 1px solid rgba(181, 105, 24, 0.28);
+                font-size: 0.85rem;
+                line-height: 1;
+            }
+
+            .memorial-candle-disclosure[open] .memorial-candle-disclosure-summary::after {
+                content: '−';
+            }
+
             .memorial-candle-message-inline {
                 margin-top: 0.45rem;
                 line-height: 1.7;
@@ -317,6 +361,18 @@
                     background: rgba(255, 214, 138, 0.08);
                     box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
                 }
+
+                .memorial-candle-disclosure {
+                    border-top-color: rgba(255, 255, 255, 0.08);
+                }
+
+                .memorial-candle-disclosure-summary {
+                    color: #f0bc6a;
+                }
+
+                .memorial-candle-disclosure-summary::after {
+                    border-color: rgba(240, 188, 106, 0.28);
+                }
             }
 
             .dark .memorial-candle-surface,
@@ -342,9 +398,21 @@
                 background: rgba(255, 214, 138, 0.08);
                 box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
             }
+
+            .dark .memorial-candle-disclosure {
+                border-top-color: rgba(255, 255, 255, 0.08);
+            }
+
+            .dark .memorial-candle-disclosure-summary {
+                color: #f0bc6a;
+            }
+
+            .dark .memorial-candle-disclosure-summary::after {
+                border-color: rgba(240, 188, 106, 0.28);
+            }
         </style>
     @endif
-@endsection
+@endpush
 
 @push('scripts')
 <script>
@@ -377,6 +445,7 @@
         messageToggle: @json(__('ui.memorial.candle.message_toggle')),
         captionActive: @json(__('ui.memorial.candle.caption_active')),
         captionInactive: @json(__('ui.memorial.candle.caption_inactive')),
+        archiveToggle: @json(__('ui.memorial.candle.archive_toggle')),
         visualStatusActive: @json(__('ui.memorial.candle.visual_status_active')),
         visualStatusInactive: @json(__('ui.memorial.candle.visual_status_inactive')),
         wallTitle: @json(__('ui.memorial.candle.wall_title')),
@@ -734,38 +803,17 @@
         }
     }
 
-    function renderMemorialCandleWall(summary) {
-        const wrap = document.getElementById('memorialCandleWallWrap');
-        const grid = document.getElementById('memorialCandleWallGrid');
-        const empty = document.getElementById('memorialCandleWallEmpty');
-        if (!wrap || !grid || !empty) {
-            return;
+    function buildMemorialWallCard(candle) {
+        const badges = [];
+        if (candle?.isFamily) {
+            badges.push(`<span class="memorial-candle-badge memorial-candle-badge--family">${escapeHtml(memorialCandleLabels.familyBadge)}</span>`);
+        }
+        if (candle?.isPremium) {
+            badges.push(`<span class="memorial-candle-badge memorial-candle-badge--premium">${escapeHtml(memorialCandleLabels.premiumBadge)}</span>`);
         }
 
-        const wallCandles = Array.isArray(summary?.wallCandles) ? summary.wallCandles : [];
-        const showWall = Boolean(summary?.settings?.showWall);
-        wrap.hidden = !showWall;
-        grid.innerHTML = '';
-
-        if (!showWall) {
-            empty.hidden = true;
-            return;
-        }
-
-        empty.hidden = wallCandles.length !== 0;
-
-        wallCandles.forEach((candle) => {
-            const badges = [];
-            if (candle?.isFamily) {
-                badges.push(`<span class="memorial-candle-badge memorial-candle-badge--family">${escapeHtml(memorialCandleLabels.familyBadge)}</span>`);
-            }
-            if (candle?.isPremium) {
-                badges.push(`<span class="memorial-candle-badge memorial-candle-badge--premium">${escapeHtml(memorialCandleLabels.premiumBadge)}</span>`);
-            }
-
-            const card = document.createElement('article');
-            card.className = 'memorial-candle-surface rounded-2xl px-4 py-4';
-            card.innerHTML = `
+        return `
+            <article class="memorial-candle-surface rounded-2xl px-4 py-4">
                 <div class="flex items-start gap-3">
                     <div class="memorial-candle-card-icon mt-1" aria-hidden="true"></div>
                     <div class="min-w-0 flex-1">
@@ -775,38 +823,88 @@
                         ${buildCandleMessageBlock(candle?.message)}
                     </div>
                 </div>
-            `;
-            grid.appendChild(card);
-        });
+            </article>
+        `;
+    }
+
+    function buildMemorialRecentCard(lighter) {
+        return `
+            <li class="memorial-candle-surface rounded-xl px-4 py-3">
+                <p class="text-sm font-medium text-foreground">${escapeHtml(lighter?.lighterName || '')}</p>
+                <p class="mt-1 text-xs text-muted-foreground">${escapeHtml(formatCandleDate(lighter?.litAt))}</p>
+                ${buildCandleMessageBlock(lighter?.message)}
+            </li>
+        `;
+    }
+
+    function renderMemorialCandleWall(summary) {
+        const wrap = document.getElementById('memorialCandleWallWrap');
+        const latest = document.getElementById('memorialCandleWallLatest');
+        const archiveDetails = document.getElementById('memorialCandleWallArchiveDetails');
+        const archiveGrid = document.getElementById('memorialCandleWallArchive');
+        const empty = document.getElementById('memorialCandleWallEmpty');
+        if (!wrap || !latest || !archiveDetails || !archiveGrid || !empty) {
+            return;
+        }
+
+        const wallCandles = Array.isArray(summary?.wallCandles) ? summary.wallCandles : [];
+        const showWall = Boolean(summary?.settings?.showWall);
+        wrap.hidden = !showWall;
+        latest.innerHTML = '';
+        archiveGrid.innerHTML = '';
+
+        if (!showWall) {
+            empty.hidden = true;
+            archiveDetails.hidden = true;
+            archiveDetails.open = false;
+            return;
+        }
+
+        empty.hidden = wallCandles.length !== 0;
+        archiveDetails.hidden = true;
+        archiveDetails.open = false;
+
+        const [latestCandle, ...olderCandles] = wallCandles;
+        if (latestCandle) {
+            latest.innerHTML = buildMemorialWallCard(latestCandle);
+        }
+
+        if (olderCandles.length > 0) {
+            archiveDetails.hidden = false;
+            archiveGrid.innerHTML = olderCandles.map((candle) => buildMemorialWallCard(candle)).join('');
+        }
     }
 
     function renderMemorialCandleRecentLighters(summary) {
         const recentWrap = document.getElementById('memorialCandleRecentWrap');
-        const recentList = document.getElementById('memorialCandleRecentList');
-        if (!recentWrap || !recentList) {
+        const latest = document.getElementById('memorialCandleRecentLatest');
+        const archiveDetails = document.getElementById('memorialCandleRecentArchiveDetails');
+        const archiveList = document.getElementById('memorialCandleRecentArchive');
+        if (!recentWrap || !latest || !archiveDetails || !archiveList) {
             return;
         }
 
         const lighters = Array.isArray(summary?.recentLighters) ? summary.recentLighters : [];
         const shouldShow = Boolean(summary?.settings?.showRecentLighters) && lighters.length > 0;
         recentWrap.hidden = !shouldShow;
-        recentList.innerHTML = '';
+        latest.innerHTML = '';
+        archiveList.innerHTML = '';
+        archiveDetails.hidden = true;
+        archiveDetails.open = false;
 
         if (!shouldShow) {
             return;
         }
 
-        lighters.forEach((lighter) => {
-            const item = document.createElement('li');
-            item.className = 'memorial-candle-surface rounded-xl px-4 py-3';
-            const litAt = formatCandleDate(lighter?.litAt);
-            item.innerHTML = `
-                <p class="text-sm font-medium text-foreground">${escapeHtml(lighter?.lighterName || '')}</p>
-                <p class="mt-1 text-xs text-muted-foreground">${escapeHtml(litAt)}</p>
-                ${buildCandleMessageBlock(lighter?.message)}
-            `;
-            recentList.appendChild(item);
-        });
+        const [latestLighter, ...olderLighters] = lighters;
+        if (latestLighter) {
+            latest.innerHTML = buildMemorialRecentCard(latestLighter);
+        }
+
+        if (olderLighters.length > 0) {
+            archiveDetails.hidden = false;
+            archiveList.innerHTML = olderLighters.map((lighter) => buildMemorialRecentCard(lighter)).join('');
+        }
     }
 
     function syncMemorialFamilyManager(user, summary = memorialCandleState) {
@@ -1634,65 +1732,132 @@
                                                 >
                                                     {{ __('ui.memorial.candle.wall_empty') }}
                                                 </p>
-                                                <div id="memorialCandleWallGrid" class="grid gap-3 sm:grid-cols-2">
-                                                    @foreach($candleWallItems as $wallCandle)
+                                                <div id="memorialCandleWallLatest" class="space-y-3">
+                                                    @if($latestWallCandle)
                                                         <article class="memorial-candle-surface rounded-2xl px-4 py-4">
                                                             <div class="flex items-start gap-3">
                                                                 <div class="memorial-candle-card-icon mt-1" aria-hidden="true"></div>
                                                                 <div class="min-w-0 flex-1">
                                                                     <div class="flex flex-wrap items-center gap-2">
-                                                                        @if($wallCandle['isFamily'] ?? false)
+                                                                        @if($latestWallCandle['isFamily'] ?? false)
                                                                             <span class="memorial-candle-badge memorial-candle-badge--family">{{ __('ui.memorial.candle.family_badge') }}</span>
                                                                         @endif
-                                                                        @if($wallCandle['isPremium'] ?? false)
+                                                                        @if($latestWallCandle['isPremium'] ?? false)
                                                                             <span class="memorial-candle-badge memorial-candle-badge--premium">{{ __('ui.memorial.candle.premium_badge') }}</span>
                                                                         @endif
                                                                     </div>
-                                                                    <p class="mt-2 text-sm font-semibold text-foreground">{{ $wallCandle['lighterName'] ?? '' }}</p>
+                                                                    <p class="mt-2 text-sm font-semibold text-foreground">{{ $latestWallCandle['lighterName'] ?? '' }}</p>
                                                                     <p class="mt-1 text-xs text-muted-foreground">
-                                                                        @if(isset($wallCandle['litAt']))
-                                                                            {{ \Carbon\Carbon::parse($wallCandle['litAt'])->translatedFormat('d. M Y.') }}
+                                                                        @if(isset($latestWallCandle['litAt']))
+                                                                            {{ \Carbon\Carbon::parse($latestWallCandle['litAt'])->translatedFormat('d. M Y.') }}
                                                                         @endif
                                                                     </p>
-                                                                    @if($wallCandle['message'] ?? null)
+                                                                    @if($latestWallCandle['message'] ?? null)
                                                                         <div class="mt-3">
                                                                             <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700/85">{{ __('ui.memorial.candle.message_toggle') }}</p>
-                                                                            <p class="memorial-candle-message-inline text-sm leading-relaxed text-muted-foreground">{{ $wallCandle['message'] ?? '' }}</p>
+                                                                            <p class="memorial-candle-message-inline text-sm leading-relaxed text-muted-foreground">{{ $latestWallCandle['message'] ?? '' }}</p>
                                                                         </div>
                                                                     @endif
                                                                 </div>
                                                             </div>
                                                         </article>
-                                                    @endforeach
+                                                    @endif
                                                 </div>
+                                                <details
+                                                    id="memorialCandleWallArchiveDetails"
+                                                    class="memorial-candle-disclosure"
+                                                    @if($olderWallCandles->isEmpty())
+                                                        hidden
+                                                    @endif
+                                                >
+                                                    <summary class="memorial-candle-disclosure-summary">{{ __('ui.memorial.candle.archive_toggle') }}</summary>
+                                                    <div id="memorialCandleWallArchive" class="mt-3 grid gap-3 sm:grid-cols-2">
+                                                        @foreach($olderWallCandles as $wallCandle)
+                                                            <article class="memorial-candle-surface rounded-2xl px-4 py-4">
+                                                                <div class="flex items-start gap-3">
+                                                                    <div class="memorial-candle-card-icon mt-1" aria-hidden="true"></div>
+                                                                    <div class="min-w-0 flex-1">
+                                                                        <div class="flex flex-wrap items-center gap-2">
+                                                                            @if($wallCandle['isFamily'] ?? false)
+                                                                                <span class="memorial-candle-badge memorial-candle-badge--family">{{ __('ui.memorial.candle.family_badge') }}</span>
+                                                                            @endif
+                                                                            @if($wallCandle['isPremium'] ?? false)
+                                                                                <span class="memorial-candle-badge memorial-candle-badge--premium">{{ __('ui.memorial.candle.premium_badge') }}</span>
+                                                                            @endif
+                                                                        </div>
+                                                                        <p class="mt-2 text-sm font-semibold text-foreground">{{ $wallCandle['lighterName'] ?? '' }}</p>
+                                                                        <p class="mt-1 text-xs text-muted-foreground">
+                                                                            @if(isset($wallCandle['litAt']))
+                                                                                {{ \Carbon\Carbon::parse($wallCandle['litAt'])->translatedFormat('d. M Y.') }}
+                                                                            @endif
+                                                                        </p>
+                                                                        @if($wallCandle['message'] ?? null)
+                                                                            <div class="mt-3">
+                                                                                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700/85">{{ __('ui.memorial.candle.message_toggle') }}</p>
+                                                                                <p class="memorial-candle-message-inline text-sm leading-relaxed text-muted-foreground">{{ $wallCandle['message'] ?? '' }}</p>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </article>
+                                                        @endforeach
+                                                    </div>
+                                                </details>
                                             </div>
 
                                             <div
                                                 id="memorialCandleRecentWrap"
-                                                class="space-y-2"
+                                                class="space-y-3"
                                                 @if(!(($candleSettings['showRecentLighters'] ?? false) && $recentCandleLighters->isNotEmpty()))
                                                 hidden
                                             @endif
                                         >
                                                 <p class="text-sm font-medium text-primary">{{ __('ui.memorial.candle.recent_lighters') }}</p>
-                                                <ul id="memorialCandleRecentList" class="grid gap-2 sm:grid-cols-2">
-                                                    @foreach($recentCandleLighters as $lighter)
+                                                <ul id="memorialCandleRecentLatest" class="space-y-2">
+                                                    @if($latestRecentCandle)
                                                         <li class="memorial-candle-surface rounded-xl px-4 py-3">
-                                                            <p class="text-sm font-medium text-foreground">{{ $lighter['lighterName'] ?? '' }}</p>
+                                                            <p class="text-sm font-medium text-foreground">{{ $latestRecentCandle['lighterName'] ?? '' }}</p>
                                                             <p class="mt-1 text-xs text-muted-foreground">
-                                                                @if(isset($lighter['litAt']))
-                                                                    {{ \Carbon\Carbon::parse($lighter['litAt'])->translatedFormat('d. M Y.') }}
+                                                                @if(isset($latestRecentCandle['litAt']))
+                                                                    {{ \Carbon\Carbon::parse($latestRecentCandle['litAt'])->translatedFormat('d. M Y.') }}
                                                                 @endif
                                                             </p>
-                                                            @if($lighter['message'] ?? null)
+                                                            @if($latestRecentCandle['message'] ?? null)
                                                                 <div class="mt-3">
                                                                     <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700/85">{{ __('ui.memorial.candle.message_toggle') }}</p>
-                                                                    <p class="memorial-candle-message-inline text-sm text-muted-foreground">{{ $lighter['message'] ?? '' }}</p>
+                                                                    <p class="memorial-candle-message-inline text-sm text-muted-foreground">{{ $latestRecentCandle['message'] ?? '' }}</p>
                                                                 </div>
                                                             @endif
                                                         </li>
-                                                    @endforeach
+                                                    @endif
                                                 </ul>
+                                                <details
+                                                    id="memorialCandleRecentArchiveDetails"
+                                                    class="memorial-candle-disclosure"
+                                                    @if($olderRecentCandles->isEmpty())
+                                                        hidden
+                                                    @endif
+                                                >
+                                                    <summary class="memorial-candle-disclosure-summary">{{ __('ui.memorial.candle.archive_toggle') }}</summary>
+                                                    <ul id="memorialCandleRecentArchive" class="mt-3 grid gap-2 sm:grid-cols-2">
+                                                        @foreach($olderRecentCandles as $lighter)
+                                                            <li class="memorial-candle-surface rounded-xl px-4 py-3">
+                                                                <p class="text-sm font-medium text-foreground">{{ $lighter['lighterName'] ?? '' }}</p>
+                                                                <p class="mt-1 text-xs text-muted-foreground">
+                                                                    @if(isset($lighter['litAt']))
+                                                                        {{ \Carbon\Carbon::parse($lighter['litAt'])->translatedFormat('d. M Y.') }}
+                                                                    @endif
+                                                                </p>
+                                                                @if($lighter['message'] ?? null)
+                                                                    <div class="mt-3">
+                                                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700/85">{{ __('ui.memorial.candle.message_toggle') }}</p>
+                                                                        <p class="memorial-candle-message-inline text-sm text-muted-foreground">{{ $lighter['message'] ?? '' }}</p>
+                                                                    </div>
+                                                                @endif
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </details>
                                             </div>
 
                                             <div
