@@ -303,6 +303,8 @@ return [
             'message_placeholder' => 'Leave a short remembrance with this candle...',
             'message_hint' => 'Optional, warm and short. Visible in the candle wall.',
             'message_toggle' => 'Message of remembrance',
+            'caption_active' => 'A memory that endures',
+            'caption_inactive' => 'Light a candle',
             'visual_status_active' => 'Burning',
             'visual_status_inactive' => 'Unlit',
             'wall_title' => 'Wall of candles',

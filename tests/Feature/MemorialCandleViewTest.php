@@ -43,10 +43,13 @@ it('renders the digital candle module on the public memorial page when enabled',
     expect($content)->toContain('bg-transparent');
     expect($content)->toContain('Svijeca sjecanja');
     expect($content)->toContain('Ugasena');
+    expect($content)->toContain('memorial-candle-wrapper');
+    expect($content)->toContain('memorial-candle-smoke');
     expect($content)->toContain('/api/v1/memorials/');
     expect($content)->toContain('id="memorialCandleComposer"');
     expect($content)->toContain('id="memorialCandleWallWrap"');
     expect($content)->toContain('id="memorialFamilyManager"');
+    expect($content)->not->toContain('ðŸ•¯');
 });
 
 it('does not render the digital candle module when the feature is disabled by admin setting', function () {
@@ -105,4 +108,6 @@ it('renders anniversary and family candle blocks when phase two candle data exis
     expect($content)->toContain('id="memorialCandleAnniversaryWrap"');
     expect($content)->toContain('Porodicna svijeca');
     expect($content)->toContain('Poruka sjecanja');
+    expect($content)->toContain('data-state="active"');
+    expect($content)->toContain('Sjecanje koje traje');
 });

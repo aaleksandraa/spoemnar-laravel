@@ -303,6 +303,8 @@ return [
             'message_placeholder' => 'Ostavite kratku poruku sjecanja uz ovu svijecu...',
             'message_hint' => 'Opcionalno, kratko i toplo. Vidljivo na zidu svijeca.',
             'message_toggle' => 'Poruka sjecanja',
+            'caption_active' => 'Sjecanje koje traje',
+            'caption_inactive' => 'Upali svijecu',
             'visual_status_active' => 'Gori',
             'visual_status_inactive' => 'Ugasena',
             'wall_title' => 'Zid svijeca',

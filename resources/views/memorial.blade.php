@@ -60,10 +60,11 @@
     @if($isCandleFeatureEnabled)
         <style>
             @keyframes memorial-candle-flicker {
-                0%, 100% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.9; }
+                0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.9; }
                 25% { transform: translateX(-49%) scale(1.04) rotate(1deg); opacity: 1; }
                 50% { transform: translateX(-51%) scale(0.96) rotate(-2deg); opacity: 0.85; }
                 75% { transform: translateX(-49.5%) scale(1.02) rotate(2deg); opacity: 1; }
+                100% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.9; }
             }
 
             @keyframes memorial-candle-glow {
@@ -85,106 +86,146 @@
             .memorial-candle-stage {
                 background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
                 border-radius: 1.75rem;
-            }
-
-            .memorial-candle-visual-core {
-                position: relative;
-                width: 64px;
-                height: 150px;
+                padding: 1.45rem 1.45rem 1.2rem;
                 display: flex;
-                align-items: flex-end;
-                justify-content: center;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                overflow: visible;
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 28px rgba(0,0,0,0.16);
             }
 
-            .memorial-candle-flame,
-            .memorial-candle-inner-flame,
-            .memorial-candle-glow,
-            .memorial-candle-halo,
-            .memorial-candle-smoke,
-            .memorial-candle-body,
-            .memorial-candle-wick {
-                transition: opacity 700ms ease, transform 700ms ease, filter 700ms ease, box-shadow 700ms ease;
+            .memorial-candle-wrapper {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-end;
+                min-height: 142px;
+                overflow: visible;
             }
 
             .memorial-candle-body {
-                width: 22px !important;
-                height: 110px !important;
-                border-radius: 8px !important;
-                position: absolute !important;
-                left: 50%;
-                bottom: 0;
-                transform: translateX(-50%);
+                width: 22px;
+                height: 110px;
+                position: relative;
+                border-radius: 8px;
+                background: linear-gradient(to bottom, #e8e8e8, #cfcfcf);
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.12);
             }
 
             .memorial-candle-wick {
-                width: 2px !important;
-                height: 10px !important;
-                top: -10px !important;
-                left: 50% !important;
-                bottom: auto !important;
-                transform: translateX(-50%) !important;
-                border-radius: 2px !important;
+                width: 2px;
+                height: 10px;
+                background: #0f0f0f;
+                position: absolute;
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                border-radius: 2px;
             }
 
             .memorial-candle-flame,
-            .memorial-candle-inner-flame,
             .memorial-candle-glow,
-            .memorial-candle-halo {
-                opacity: 0;
-                visibility: hidden;
-            }
-
-            .memorial-candle-halo {
-                display: none !important;
-            }
-
-            .memorial-candle-inner-flame {
-                display: none !important;
-            }
-
-            .memorial-candle-glow {
-                width: 50px !important;
-                height: 50px !important;
-                left: 50% !important;
-                bottom: 75px !important;
+            .memorial-candle-smoke {
+                position: absolute;
+                left: 50%;
+                pointer-events: none;
                 transform: translateX(-50%);
-                background: radial-gradient(circle, rgba(255,190,80,0.22), transparent 70%) !important;
             }
 
             .memorial-candle-flame {
-                width: 12px !important;
-                height: 26px !important;
-                left: 50% !important;
-                bottom: 110px !important;
-                transform: translateX(-50%);
-                border-radius: 50% 50% 45% 45% !important;
-                background: radial-gradient(circle at 50% 30%, #fff7c2 0%, #ffd36a 40%, #ff8c2a 75%, transparent 100%) !important;
+                width: 12px;
+                height: 26px;
+                background: radial-gradient(circle at 50% 30%, #fff7c2 0%, #ffd36a 40%, #ff8c2a 75%, transparent 100%);
+                top: -6px;
+                border-radius: 50% 50% 45% 45%;
                 filter: blur(0.4px);
+                display: none;
+            }
+
+            .memorial-candle-glow {
+                width: 50px;
+                height: 50px;
+                background: radial-gradient(circle, rgba(255,190,80,0.22), transparent 70%);
+                top: -10px;
+                display: none;
             }
 
             .memorial-candle-smoke {
-                width: 8px !important;
-                height: 12px !important;
-                left: 50% !important;
-                bottom: 118px !important;
-                transform: translateX(-50%);
-                background: radial-gradient(circle, rgba(200,200,200,0.25), transparent 70%) !important;
-                border-radius: 50% !important;
+                width: 8px;
+                height: 12px;
+                top: 8px;
+                background: radial-gradient(circle, rgba(200,200,200,0.25), transparent 70%);
+                border-radius: 50%;
+                opacity: 0.3;
+                display: block;
+                animation: memorial-candle-smoke 3s ease-out infinite;
+            }
+
+            .memorial-candle-caption {
+                color: #eaeaea;
+                font-size: 14px;
+                opacity: 0.65;
+                letter-spacing: 0.4px;
+                text-align: center;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-body {
+                background: linear-gradient(to bottom, #f5f5f5, #d9d9d9);
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.15);
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-wick {
+                background: #222;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-flame {
+                display: block;
+                animation: memorial-candle-flicker 2.6s infinite ease-in-out;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-glow {
+                display: block;
+                animation: memorial-candle-glow 3.2s infinite ease-in-out;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-smoke {
+                display: none;
+                animation: none;
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-glow,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-flame,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-glow {
+                display: none !important;
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-smoke,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-smoke {
+                display: block;
+                animation: memorial-candle-smoke 3s ease-out infinite;
             }
 
             .memorial-candle-surface {
-                border: 1px solid rgba(191, 144, 66, 0.20);
-                background: rgba(255, 250, 241, 0.68);
-                box-shadow: 0 10px 24px rgba(120, 92, 45, 0.08);
+                border: 1px solid rgba(191, 144, 66, 0.18);
+                background: rgba(255, 250, 241, 0.52);
+                box-shadow: 0 10px 24px rgba(120, 92, 45, 0.06);
             }
 
             .memorial-candle-surface--strong {
-                background: rgba(255, 247, 236, 0.82);
+                background: rgba(255, 247, 236, 0.72);
             }
 
             .memorial-candle-surface--empty {
                 border-style: dashed;
-                background: rgba(255, 251, 245, 0.4);
+                background: rgba(255, 251, 245, 0.3);
+            }
+
+            .memorial-candle-soft-field {
+                background: rgba(255, 255, 255, 0.38);
+                border: 1px solid rgba(191, 144, 66, 0.16);
             }
 
             .memorial-candle-badge {
@@ -207,86 +248,45 @@
                 color: #fff;
             }
 
+            .memorial-candle-card-icon {
+                position: relative;
+                display: inline-flex;
+                width: 2.75rem;
+                height: 2.75rem;
+                flex-shrink: 0;
+                align-items: center;
+                justify-content: center;
+                border-radius: 9999px;
+                background: rgba(255, 207, 112, 0.1);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+            }
+
+            .memorial-candle-card-icon::before {
+                content: '';
+                position: absolute;
+                bottom: 0.72rem;
+                width: 10px;
+                height: 18px;
+                border-radius: 4px;
+                background: linear-gradient(to bottom, #f5f5f5, #d9d9d9);
+                box-shadow: inset 0 -2px 4px rgba(0,0,0,0.12);
+            }
+
+            .memorial-candle-card-icon::after {
+                content: '';
+                position: absolute;
+                bottom: 1.7rem;
+                width: 8px;
+                height: 14px;
+                border-radius: 50% 50% 45% 45%;
+                background: radial-gradient(circle at 50% 30%, #fff7c2 0%, #ffd36a 42%, #ff8c2a 76%, transparent 100%);
+                box-shadow: 0 0 16px rgba(255,190,80,0.2);
+            }
+
             .memorial-candle-message-inline {
-                margin-top: 0.85rem;
-                color: inherit;
-                opacity: 0.82;
+                margin-top: 0.45rem;
                 line-height: 1.7;
-            }
-
-            .memorial-candle-soft-field {
-                background: rgba(255, 255, 255, 0.4);
-                border: 1px solid rgba(191, 144, 66, 0.16);
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-flame {
-                display: block;
-                animation: memorial-candle-flicker 2.6s ease-in-out infinite;
-                opacity: 1;
-                visibility: visible;
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-glow {
-                display: block;
-                animation: memorial-candle-glow 3.3s ease-in-out infinite;
-                opacity: 0.5;
-                visibility: visible;
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-smoke {
-                opacity: 0;
-                animation: none;
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-body {
-                background: linear-gradient(to bottom, #f5f5f5, #d9d9d9) !important;
-                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.15) !important;
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-wick {
-                background: #222 !important;
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-stage {
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 18px 34px rgba(18,14,12,0.22);
-            }
-
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-flame,
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-glow,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-glow,
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-halo,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-halo {
-                display: none !important;
-                opacity: 0;
-                visibility: hidden;
-            }
-
-            .memorial-candle-section[data-state="inactive"][data-has-history="true"] .memorial-candle-smoke,
-            .memorial-candle-section[data-state="disabled"][data-has-history="true"] .memorial-candle-smoke {
-                animation: memorial-candle-smoke 3s ease-out infinite;
-                opacity: 0.3;
-            }
-
-            .memorial-candle-section[data-has-history="false"] .memorial-candle-smoke {
-                animation: none;
-                opacity: 0;
-            }
-
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-body,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-body {
-                background: linear-gradient(to bottom, #e8e8e8, #cfcfcf) !important;
-                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.12) !important;
-            }
-
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-wick,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-wick {
-                background: #0f0f0f !important;
-            }
-
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-stage,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-stage {
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 28px rgba(18,14,12,0.18);
+                opacity: 0.86;
             }
 
             @media (prefers-color-scheme: dark) {
@@ -294,8 +294,8 @@
                 .memorial-candle-surface--strong,
                 .memorial-candle-surface--empty,
                 .memorial-candle-soft-field {
-                    background: rgba(255, 255, 255, 0.06) !important;
-                    border-color: rgba(255, 255, 255, 0.10) !important;
+                    background: rgba(255, 255, 255, 0.045) !important;
+                    border-color: rgba(255, 255, 255, 0.08) !important;
                     box-shadow: none !important;
                 }
 
@@ -312,14 +312,19 @@
                     background: rgba(255, 255, 255, 0.12);
                     color: #f7f3ec;
                 }
+
+                .memorial-candle-card-icon {
+                    background: rgba(255, 214, 138, 0.08);
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+                }
             }
 
             .dark .memorial-candle-surface,
             .dark .memorial-candle-surface--strong,
             .dark .memorial-candle-surface--empty,
             .dark .memorial-candle-soft-field {
-                background: rgba(255, 255, 255, 0.06) !important;
-                border-color: rgba(255, 255, 255, 0.10) !important;
+                background: rgba(255, 255, 255, 0.045) !important;
+                border-color: rgba(255, 255, 255, 0.08) !important;
                 box-shadow: none !important;
             }
 
@@ -331,6 +336,11 @@
             .dark .memorial-candle-badge--premium {
                 background: rgba(255, 255, 255, 0.12);
                 color: #f7f3ec;
+            }
+
+            .dark .memorial-candle-card-icon {
+                background: rgba(255, 214, 138, 0.08);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
             }
         </style>
     @endif
@@ -365,6 +375,8 @@
         messagePlaceholder: @json(__('ui.memorial.candle.message_placeholder')),
         messageHint: @json(__('ui.memorial.candle.message_hint')),
         messageToggle: @json(__('ui.memorial.candle.message_toggle')),
+        captionActive: @json(__('ui.memorial.candle.caption_active')),
+        captionInactive: @json(__('ui.memorial.candle.caption_inactive')),
         visualStatusActive: @json(__('ui.memorial.candle.visual_status_active')),
         visualStatusInactive: @json(__('ui.memorial.candle.visual_status_inactive')),
         wallTitle: @json(__('ui.memorial.candle.wall_title')),
@@ -755,7 +767,7 @@
             card.className = 'memorial-candle-surface rounded-2xl px-4 py-4';
             card.innerHTML = `
                 <div class="flex items-start gap-3">
-                    <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100/20 text-lg text-amber-600">🕯</div>
+                    <div class="memorial-candle-card-icon mt-1" aria-hidden="true"></div>
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-2">${badges.join('')}</div>
                         <p class="mt-2 text-sm font-semibold text-foreground">${escapeHtml(candle?.lighterName || '')}</p>
@@ -842,6 +854,7 @@
         const eyebrow = document.getElementById('memorialCandleEyebrow');
         const subtitle = document.getElementById('memorialCandleSubtitle');
         const countBadge = document.getElementById('memorialCandleCountBadge');
+        const caption = document.getElementById('memorialCandleCaption');
         const countdownWrap = document.getElementById('memorialCandleCountdownWrap');
         const visualStatus = document.getElementById('memorialCandleVisualStatus');
         const currentWrap = document.getElementById('memorialCandleCurrentLighterWrap');
@@ -878,6 +891,12 @@
 
         if (countBadge) {
             countBadge.textContent = `${totalCandles} ${memorialCandleLabels.countLabel}`;
+        }
+
+        if (caption) {
+            caption.textContent = primaryVisibleCandle
+                ? memorialCandleLabels.captionActive
+                : memorialCandleLabels.captionInactive;
         }
 
         if (visualStatus) {
@@ -1467,18 +1486,18 @@
 
                                     <div class="grid gap-6 lg:grid-cols-[170px_1fr] lg:items-center">
                                         <div class="flex flex-col items-center gap-3">
-                                            <div class="memorial-candle-stage px-7 py-5">
-                                                <div class="memorial-candle-visual-core">
-                                                    <div class="memorial-candle-glow absolute bottom-[4.65rem] h-[3.15rem] w-[3.15rem] rounded-full bg-[radial-gradient(circle,rgba(255,190,80,0.22),transparent_70%)]"></div>
-                                                    <div class="memorial-candle-halo absolute bottom-[4.45rem] h-[2.3rem] w-[2.3rem] rounded-full bg-amber-200/35 blur-md"></div>
-                                                    <div class="memorial-candle-smoke absolute bottom-[4.85rem] h-8 w-4 rounded-full bg-stone-400/60 blur-[3px]"></div>
-                                                    <div class="memorial-candle-flame absolute bottom-[4.82rem] h-[1.6rem] w-[0.78rem] rounded-[50%_50%_45%_45%] bg-[radial-gradient(circle_at_50%_30%,#fff7c2_0%,#ffd36a_40%,#ff8c2a_75%,transparent_100%)] blur-[0.4px]"></div>
-                                                    <div class="memorial-candle-inner-flame absolute bottom-[5.05rem] h-[0.95rem] w-[0.38rem] rounded-[50%_50%_45%_45%] bg-gradient-to-t from-orange-300 via-yellow-100 to-white"></div>
-                                                    <div class="memorial-candle-body relative overflow-hidden bg-gradient-to-b from-[#f5f5f5] to-[#d9d9d9] shadow-[inset_0_-5px_10px_rgba(0,0,0,0.15)]">
-                                                        <div class="memorial-candle-wick absolute h-[0.65rem] w-[2px] rounded-full bg-stone-900"></div>
+                                            <div class="memorial-candle-stage">
+                                                <div class="memorial-candle-wrapper">
+                                                    <div class="memorial-candle-glow"></div>
+                                                    <div class="memorial-candle-flame"></div>
+                                                    <div class="memorial-candle-smoke"></div>
+                                                    <div class="memorial-candle-body">
+                                                        <div class="memorial-candle-wick"></div>
                                                     </div>
-                                                    <div class="absolute bottom-0 h-3 w-16 rounded-full bg-black/35 blur-md"></div>
                                                 </div>
+                                                <p id="memorialCandleCaption" class="memorial-candle-caption">
+                                                    {{ $primaryVisibleCandle ? __('ui.memorial.candle.caption_active') : __('ui.memorial.candle.caption_inactive') }}
+                                                </p>
                                             </div>
 
                                             <p
@@ -1619,7 +1638,7 @@
                                                     @foreach($candleWallItems as $wallCandle)
                                                         <article class="memorial-candle-surface rounded-2xl px-4 py-4">
                                                             <div class="flex items-start gap-3">
-                                                                <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100/20 text-lg text-amber-600">🕯</div>
+                                                                <div class="memorial-candle-card-icon mt-1" aria-hidden="true"></div>
                                                                 <div class="min-w-0 flex-1">
                                                                     <div class="flex flex-wrap items-center gap-2">
                                                                         @if($wallCandle['isFamily'] ?? false)

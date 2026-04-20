@@ -303,6 +303,8 @@ return [
             'message_placeholder' => 'Ostavite kratku poruku secanja uz ovu svecu...',
             'message_hint' => 'Opciono, kratko i toplo. Vidljivo na zidu sveca.',
             'message_toggle' => 'Poruka secanja',
+            'caption_active' => 'Secanje koje traje',
+            'caption_inactive' => 'Upali svecu',
             'visual_status_active' => 'Gori',
             'visual_status_inactive' => 'Ugasena',
             'wall_title' => 'Zid sveca',

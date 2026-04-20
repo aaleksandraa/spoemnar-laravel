@@ -303,6 +303,8 @@ return [
             'message_placeholder' => 'Hinterlassen Sie eine kurze Erinnerung mit dieser Kerze...',
             'message_hint' => 'Optional, warm und kurz. Sichtbar in der Kerzenwand.',
             'message_toggle' => 'Erinnerungsbotschaft',
+            'caption_active' => 'Erinnerung die bleibt',
+            'caption_inactive' => 'Kerze anzuenden',
             'visual_status_active' => 'Brennt',
             'visual_status_inactive' => 'Erloschen',
             'wall_title' => 'Kerzenwand',
