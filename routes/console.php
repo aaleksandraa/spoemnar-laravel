@@ -13,3 +13,7 @@ Schedule::command('db:backup')
     ->dailyAt((string) config('backup.schedule.daily_at', '00:30'))
     ->timezone((string) config('backup.schedule.timezone', config('app.timezone', 'UTC')))
     ->withoutOverlapping(180);
+
+Schedule::command('memorial-candles:expire')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping(30);

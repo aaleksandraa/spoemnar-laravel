@@ -31,8 +31,8 @@ class AuthenticationEdgeCasesTest extends TestCase
         // Attempt to register with the same email
         $response = $this->postJson('/api/v1/register', [
             'email' => 'existing@example.com',
-            'password' => 'newpassword456',
-            'password_confirmation' => 'newpassword456',
+            'password' => 'NewPassword456!',
+            'password_confirmation' => 'NewPassword456!',
         ]);
 
         // Should return 422 Unprocessable Entity (validation error)
@@ -43,8 +43,12 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         // Should contain error message about email already being registered
         $response->assertJsonFragment([
-            'message' => 'This email address is already registered.'
+            'message' => 'Validation failed.'
         ]);
+        $this->assertContains(
+            'This email address is already registered.',
+            $response->json('errors.email', [])
+        );
 
         // Verify only one user exists with this email
         $this->assertDatabaseCount('users', 1);
@@ -78,11 +82,13 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         // Should contain error message
         $response->assertJson([
-            'message' => 'The provided credentials are incorrect.'
+            'message' => 'Validation failed.'
         ]);
-
-        // Should have validation error for email field
         $response->assertJsonValidationErrors(['email']);
+        $this->assertContains(
+            'The provided credentials are incorrect.',
+            $response->json('errors.email', [])
+        );
 
         // Should not return a token
         $response->assertJsonMissing(['token']);
@@ -105,11 +111,13 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         // Should contain error message
         $response->assertJson([
-            'message' => 'The provided credentials are incorrect.'
+            'message' => 'Validation failed.'
         ]);
-
-        // Should have validation error for email field
         $response->assertJsonValidationErrors(['email']);
+        $this->assertContains(
+            'The provided credentials are incorrect.',
+            $response->json('errors.email', [])
+        );
 
         // Should not return a token
         $response->assertJsonMissing(['token']);
@@ -129,7 +137,7 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         // Should contain error message
         $response->assertJson([
-            'message' => 'Unauthenticated.'
+            'message' => 'Unauthenticated'
         ]);
     }
 
@@ -149,7 +157,7 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         // Should contain error message
         $response->assertJson([
-            'message' => 'Unauthenticated.'
+            'message' => 'Unauthenticated'
         ]);
     }
 
@@ -166,7 +174,7 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         $response->assertStatus(401);
         $response->assertJson([
-            'message' => 'Unauthenticated.'
+            'message' => 'Unauthenticated'
         ]);
 
         // Test with empty token after "Bearer"
@@ -176,7 +184,7 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         $response->assertStatus(401);
         $response->assertJson([
-            'message' => 'Unauthenticated.'
+            'message' => 'Unauthenticated'
         ]);
     }
 
@@ -194,7 +202,7 @@ class AuthenticationEdgeCasesTest extends TestCase
 
         // Should contain error message
         $response->assertJson([
-            'message' => 'Unauthenticated.'
+            'message' => 'Unauthenticated'
         ]);
     }
 }

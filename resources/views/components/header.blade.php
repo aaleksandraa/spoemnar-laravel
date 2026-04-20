@@ -90,6 +90,7 @@
             <a href="{{ route('about') }}" class="text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.nav.about') }}</a>
             <a href="{{ route('contact') }}" class="text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.nav.contact') }}</a>
             <a href="{{ route('search.page') }}" class="text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.home.search_tab') }}</a>
+            <a href="{{ route('account') }}" data-auth-nav class="hidden text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.nav.profile') }}</a>
             <a href="{{ route('memorial.create') }}" data-auth-nav class="hidden text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.nav.create') }}</a>
             <a href="{{ route('dashboard') }}" data-auth-nav class="hidden text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.nav.dashboard') }}</a>
             <a href="{{ route('admin.panel') }}" data-admin-nav class="hidden text-sm font-medium {{ $textClass }} transition-colors {{ $hoverTextClass }}">{{ __('ui.nav.admin') }}</a>
@@ -204,6 +205,12 @@
                     </svg>
                     <span>{{ __('ui.nav.create') }}</span>
                 </a>
+                <a href="{{ route('account') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A11.955 11.955 0 0112 15.75c2.45 0 4.727.734 6.879 2.054M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>{{ __('ui.nav.profile') }}</span>
+                </a>
                 <a href="{{ route('dashboard') }}" data-auth-nav-mobile class="hidden flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium {{ $textClass }} {{ $hoverTextClass }} {{ $mobileItemHoverClass }} transition-colors">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 13a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/>
@@ -285,7 +292,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const token = localStorage.getItem('auth_token') || '';
         const homeUrl = @json(route('home'));
         const currentLocale = @json($currentLocale);
 
@@ -298,6 +304,7 @@
         const authNavMobile = Array.from(document.querySelectorAll('[data-auth-nav-mobile]'));
         const adminNavMobile = Array.from(document.querySelectorAll('[data-admin-nav-mobile]'));
         const logoutButtons = Array.from(document.querySelectorAll('[data-logout-btn]'));
+        let authStateRequestId = 0;
 
         function setVisibility(elements, visible, displayClass = null) {
             elements.forEach((element) => {
@@ -334,11 +341,34 @@
             return isAuthStatus(error?.status);
         }
 
+        function setAuthState(isAuthenticated, isAdmin = false) {
+            setVisibility([authDesktop], isAuthenticated, 'md:flex');
+            setVisibility([authMobile], isAuthenticated, 'block');
+            setVisibility(authNavDesktop, isAuthenticated, 'inline');
+            setVisibility(authNavMobile, isAuthenticated, 'block');
+            setVisibility(adminNavDesktop, isAuthenticated && isAdmin, 'inline');
+            setVisibility(adminNavMobile, isAuthenticated && isAdmin, 'block');
+            setVisibility([guestDesktop], !isAuthenticated, 'md:flex');
+            setVisibility([guestMobile], !isAuthenticated, 'block');
+        }
+
+        function clearClientAuthState() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            authStateRequestId += 1;
+            setAuthState(false, false);
+        }
+
         async function fetchMe() {
+            const activeToken = localStorage.getItem('auth_token') || '';
+            if (activeToken === '') {
+                throw Object.assign(new Error('Unauthorized'), { status: 401 });
+            }
+
             const response = await fetch(`/api/v1/me?lang=${encodeURIComponent(currentLocale)}`, {
                 headers: {
                     Accept: 'application/json',
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${activeToken}`,
                 },
             });
 
@@ -353,21 +383,22 @@
         }
 
         async function logout() {
+            const activeToken = localStorage.getItem('auth_token') || '';
+            clearClientAuthState();
+
             try {
-                if (token) {
+                if (activeToken) {
                     await fetch('/api/v1/logout', {
                         method: 'POST',
                         headers: {
                             Accept: 'application/json',
-                            Authorization: `Bearer ${token}`,
+                            Authorization: `Bearer ${activeToken}`,
                         },
                     });
                 }
             } catch (_error) {
                 // Ignore API logout errors and clear client session anyway.
             } finally {
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
                 window.location.href = homeUrl;
             }
         }
@@ -376,36 +407,43 @@
             button.addEventListener('click', logout);
         });
 
-        if (!token) {
-            setVisibility([guestDesktop], true, 'md:flex');
-            setVisibility([guestMobile], true, 'block');
-            return;
+        async function syncHeaderState() {
+            const activeToken = localStorage.getItem('auth_token') || '';
+            if (activeToken === '') {
+                setAuthState(false, false);
+                return;
+            }
+
+            const requestId = ++authStateRequestId;
+
+            try {
+                const user = await fetchMe();
+                if (!user) {
+                    throw Object.assign(new Error('Unauthorized'), { status: 401 });
+                }
+
+                if (requestId !== authStateRequestId) {
+                    return;
+                }
+
+                localStorage.setItem('user', JSON.stringify(user));
+                setAuthState(true, isAdminUser(user));
+            } catch (error) {
+                if (requestId !== authStateRequestId) {
+                    return;
+                }
+
+                if (isAuthError(error)) {
+                    clearClientAuthState();
+                    return;
+                }
+
+                setAuthState(false, false);
+            }
         }
 
-        fetchMe().then((user) => {
-            if (!user) {
-                throw new Error('Unauthorized');
-            }
-
-            setVisibility([authDesktop], true, 'md:flex');
-            setVisibility([authMobile], true, 'block');
-            setVisibility(authNavDesktop, true, 'inline');
-            setVisibility(authNavMobile, true, 'block');
-            setVisibility([guestDesktop], false, 'md:flex');
-            setVisibility([guestMobile], false, 'block');
-
-            const admin = isAdminUser(user);
-            if (admin) {
-                setVisibility(adminNavDesktop, true, 'inline');
-                setVisibility(adminNavMobile, true, 'block');
-            }
-        }).catch((error) => {
-            if (isAuthError(error)) {
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
-            }
-            setVisibility([guestDesktop], true, 'md:flex');
-            setVisibility([guestMobile], true, 'block');
-        });
+        setAuthState(false, false);
+        syncHeaderState();
+        window.addEventListener('pageshow', syncHeaderState);
     });
 </script>

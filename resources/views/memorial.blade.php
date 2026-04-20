@@ -25,6 +25,15 @@
             'birth' => $memorialBirthYear,
             'death' => $memorialDeathYear,
         ]);
+    $candleSummary = is_array($candleSummary ?? null) ? $candleSummary : ['enabled' => false];
+    $candleSettings = is_array($candleSummary['settings'] ?? null) ? $candleSummary['settings'] : [];
+    $activeCandle = is_array($candleSummary['activeCandle'] ?? null) ? $candleSummary['activeCandle'] : null;
+    $familyCandle = is_array($candleSummary['familyCandle'] ?? null) ? $candleSummary['familyCandle'] : null;
+    $primaryVisibleCandle = $activeCandle ?: $familyCandle;
+    $recentCandleLighters = collect($candleSummary['recentLighters'] ?? []);
+    $candleWallItems = collect($candleSummary['wallCandles'] ?? []);
+    $anniversaryHighlight = is_array($candleSummary['anniversary'] ?? null) ? $candleSummary['anniversary'] : null;
+    $isCandleFeatureEnabled = (bool) ($candleSummary['enabled'] ?? false);
 @endphp
 
 @section('title', __('ui.memorial.seo_profile_title', ['name' => $memorialFullName]))
@@ -47,6 +56,54 @@
             ['name' => $memorialFullName, 'url' => route('memorial.profile', ['locale' => $currentLocale, 'slug' => $memorial->slug])]
         ]"
     />
+
+    @if($isCandleFeatureEnabled)
+        <style>
+            @keyframes memorial-candle-flicker {
+                0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.92; }
+                25% { transform: translate3d(1px, -2px, 0) scale(1.03, 0.98); opacity: 1; }
+                50% { transform: translate3d(-1px, 1px, 0) scale(0.98, 1.02); opacity: 0.88; }
+                75% { transform: translate3d(1px, 0, 0) scale(1.01, 0.99); opacity: 0.97; }
+            }
+
+            @keyframes memorial-candle-glow {
+                0%, 100% { opacity: 0.45; transform: scale(0.92); }
+                50% { opacity: 0.75; transform: scale(1.08); }
+            }
+
+            .memorial-candle-flame,
+            .memorial-candle-inner-flame,
+            .memorial-candle-glow {
+                transition: opacity 700ms ease, transform 700ms ease, filter 700ms ease;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-flame {
+                animation: memorial-candle-flicker 5.2s ease-in-out infinite;
+                opacity: 1;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-inner-flame {
+                animation: memorial-candle-flicker 4.2s ease-in-out infinite reverse;
+                opacity: 1;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-glow {
+                animation: memorial-candle-glow 5.8s ease-in-out infinite;
+                opacity: 1;
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-flame,
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-inner-flame,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-inner-flame,
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-glow,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-glow {
+                opacity: 0.12;
+                transform: translate3d(0, 8px, 0) scale(0.82);
+                filter: saturate(0.4);
+            }
+        </style>
+    @endif
 @endsection
 
 @push('scripts')
@@ -54,13 +111,66 @@
     const memorialImages = @json($galleryImageUrls);
     let currentImageIndex = 0;
     const memorialUrl = @json(route('memorial.profile', ['locale' => $currentLocale, 'slug' => $memorial->slug]));
+    const loginUrl = @json(route('login', ['locale' => $currentLocale]));
+    const memorialId = @json((string) $memorial->id);
     const memorialOwnerId = @json((string) $memorial->user_id);
+    const memorialCandleInitialState = @json($candleSummary);
+    let memorialCandleState = memorialCandleInitialState;
+    let memorialPageViewer = null;
+    const memorialCandleLabels = {
+        eyebrowActive: @json(__('ui.memorial.candle.eyebrow_active')),
+        eyebrowInactive: @json(__('ui.memorial.candle.eyebrow_inactive')),
+        subtitleActive: @json(__('ui.memorial.candle.subtitle_active')),
+        subtitleInactive: @json(__('ui.memorial.candle.subtitle_inactive')),
+        countLabel: @json(__('ui.memorial.candle.count_label')),
+        currentLighter: @json(__('ui.memorial.candle.current_lighter')),
+        recentLighters: @json(__('ui.memorial.candle.recent_lighters')),
+        remaining: @json(__('ui.memorial.candle.remaining')),
+        lightButton: @json(__('ui.memorial.candle.light_button')),
+        activeButton: @json(__('ui.memorial.candle.active_button')),
+        loginButton: @json(__('ui.memorial.candle.login_button')),
+        loading: @json(__('ui.memorial.candle.loading')),
+        recentEmpty: @json(__('ui.memorial.candle.recent_empty')),
+        messageLabel: @json(__('ui.memorial.candle.message_label')),
+        messagePlaceholder: @json(__('ui.memorial.candle.message_placeholder')),
+        messageHint: @json(__('ui.memorial.candle.message_hint')),
+        wallTitle: @json(__('ui.memorial.candle.wall_title')),
+        wallEmpty: @json(__('ui.memorial.candle.wall_empty')),
+        familyTitle: @json(__('ui.memorial.candle.family_title')),
+        familySubtitle: @json(__('ui.memorial.candle.family_subtitle')),
+        familyBadge: @json(__('ui.memorial.candle.family_badge')),
+        premiumBadge: @json(__('ui.memorial.candle.premium_badge')),
+        permanentLabel: @json(__('ui.memorial.candle.permanent_label')),
+        anniversaryTitle: @json(__('ui.memorial.candle.anniversary_title')),
+        familyManageTitle: @json(__('ui.memorial.candle.family_manage_title')),
+        familyManageHint: @json(__('ui.memorial.candle.family_manage_hint')),
+        familyManageSave: @json(__('ui.memorial.candle.family_manage_save')),
+        familyManageDelete: @json(__('ui.memorial.candle.family_manage_delete')),
+        familyManageSaving: @json(__('ui.memorial.candle.family_manage_saving')),
+        familyManageDeleteConfirm: @json(__('ui.memorial.candle.family_manage_delete_confirm')),
+        units: {
+            day: @json(__('ui.memorial.candle.countdown_units.day')),
+            hour: @json(__('ui.memorial.candle.countdown_units.hour')),
+            minute: @json(__('ui.memorial.candle.countdown_units.minute')),
+        },
+        messages: {
+            ready: @json(__('ui.memorial.candle.messages.ready')),
+            active: @json(__('ui.memorial.candle.messages.active')),
+            loginRequired: @json(__('ui.memorial.candle.messages.login_required')),
+            disabled: @json(__('ui.memorial.candle.messages.disabled')),
+            familySaved: @json(__('ui.memorial.candle.messages.family_saved')),
+            familyDeleted: @json(__('ui.memorial.candle.messages.family_deleted')),
+            loadFailed: @json(__('ui.memorial.candle.messages.load_failed')),
+            requestFailed: @json(__('ui.memorial.candle.messages.request_failed')),
+        },
+    };
     const tributeModerationLabels = {
         deleting: @json(__('ui.memorial.deleting_message')),
         confirm: @json(__('ui.memorial.delete_message_confirm')),
         success: @json(__('ui.memorial.delete_message_success')),
         failed: @json(__('ui.memorial.delete_message_failed')),
     };
+    let memorialCandleCountdownTimer = null;
 
     // Track memorial profile view
     if (window.eventTracker) {
@@ -144,6 +254,606 @@
             : false;
 
         return relationAdmin || user?.role === 'admin';
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatCandleDate(value) {
+        if (!value) {
+            return '';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+
+        return date.toLocaleDateString(document.documentElement.lang || 'bs', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    }
+
+    function formatCandleCountdown(totalSeconds) {
+        const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
+        const days = Math.floor(safeSeconds / 86400);
+        const hours = Math.floor((safeSeconds % 86400) / 3600);
+        const minutes = Math.max(1, Math.floor((safeSeconds % 3600) / 60));
+
+        if (days > 0) {
+            return `${days}${memorialCandleLabels.units.day} ${hours}${memorialCandleLabels.units.hour}`;
+        }
+
+        if (hours > 0) {
+            return `${hours}${memorialCandleLabels.units.hour} ${minutes}${memorialCandleLabels.units.minute}`;
+        }
+
+        return `${minutes}${memorialCandleLabels.units.minute}`;
+    }
+
+    function stopMemorialCandleCountdown() {
+        if (memorialCandleCountdownTimer) {
+            window.clearInterval(memorialCandleCountdownTimer);
+            memorialCandleCountdownTimer = null;
+        }
+    }
+
+    function startMemorialCandleCountdown(expiresAt) {
+        const countdownValue = document.getElementById('memorialCandleCountdownValue');
+        const countdownWrap = document.getElementById('memorialCandleCountdownWrap');
+        if (!countdownValue || !countdownWrap || !expiresAt) {
+            return;
+        }
+
+        const expiryTime = new Date(expiresAt).getTime();
+        if (Number.isNaN(expiryTime)) {
+            countdownWrap.hidden = true;
+            return;
+        }
+
+        const tick = () => {
+            const remainingSeconds = Math.floor((expiryTime - Date.now()) / 1000);
+            if (remainingSeconds <= 0) {
+                countdownValue.textContent = `0${memorialCandleLabels.units.minute}`;
+                stopMemorialCandleCountdown();
+                refreshMemorialCandleSummary().catch(() => {
+                    return;
+                });
+                return;
+            }
+
+            countdownValue.textContent = formatCandleCountdown(remainingSeconds);
+        };
+
+        stopMemorialCandleCountdown();
+        tick();
+        memorialCandleCountdownTimer = window.setInterval(tick, 30000);
+    }
+
+    function showMemorialCandleFeedback(type, text) {
+        const feedback = document.getElementById('memorialCandleFeedback');
+        if (!feedback) {
+            return;
+        }
+
+        feedback.classList.remove('text-muted-foreground', 'text-red-700', 'text-green-700');
+
+        if (type === 'error') {
+            feedback.classList.add('text-red-700');
+        } else if (type === 'success') {
+            feedback.classList.add('text-green-700');
+        } else {
+            feedback.classList.add('text-muted-foreground');
+        }
+
+        feedback.textContent = text;
+    }
+
+    function showMemorialFamilyManagerFeedback(type, text) {
+        const feedback = document.getElementById('memorialFamilyManagerFeedback');
+        if (!feedback) {
+            return;
+        }
+
+        feedback.classList.remove('hidden', 'text-muted-foreground', 'text-red-700', 'text-green-700');
+
+        if (type === 'error') {
+            feedback.classList.add('text-red-700');
+        } else if (type === 'success') {
+            feedback.classList.add('text-green-700');
+        } else {
+            feedback.classList.add('text-muted-foreground');
+        }
+
+        feedback.textContent = text;
+    }
+
+    function renderMemorialCandleAnniversary(summary) {
+        const wrap = document.getElementById('memorialCandleAnniversaryWrap');
+        const headline = document.getElementById('memorialCandleAnniversaryHeadline');
+        const description = document.getElementById('memorialCandleAnniversaryDescription');
+        if (!wrap || !headline || !description) {
+            return;
+        }
+
+        const anniversary = summary?.anniversary || null;
+        wrap.hidden = !anniversary;
+
+        if (!anniversary) {
+            headline.textContent = '';
+            description.textContent = '';
+            return;
+        }
+
+        headline.textContent = String(anniversary.headline || '');
+        description.textContent = String(anniversary.description || '');
+    }
+
+    function renderMemorialCandleFamily(summary) {
+        const wrap = document.getElementById('memorialFamilyCandleWrap');
+        const lighter = document.getElementById('memorialFamilyCandleLighter');
+        const message = document.getElementById('memorialFamilyCandleMessage');
+        const meta = document.getElementById('memorialFamilyCandleMeta');
+        const premiumBadge = document.getElementById('memorialFamilyCandlePremiumBadge');
+        if (!wrap || !lighter || !message || !meta || !premiumBadge) {
+            return;
+        }
+
+        const familyCandle = summary?.familyCandle || null;
+        const familyEnabled = Boolean(summary?.settings?.familyEnabled);
+        wrap.hidden = !(familyEnabled && familyCandle);
+
+        if (!(familyEnabled && familyCandle)) {
+            lighter.textContent = '';
+            message.textContent = '';
+            meta.textContent = '';
+            premiumBadge.hidden = true;
+            return;
+        }
+
+        lighter.textContent = String(familyCandle.lighterName || '');
+        message.textContent = String(familyCandle.message || '');
+        premiumBadge.hidden = !familyCandle.isPremium;
+
+        if (familyCandle.isPermanent) {
+            meta.textContent = memorialCandleLabels.permanentLabel;
+        } else if (familyCandle.expiresAt) {
+            meta.textContent = `${memorialCandleLabels.remaining}: ${formatCandleCountdown(familyCandle.secondsRemaining || 0)}`;
+        } else {
+            meta.textContent = '';
+        }
+    }
+
+    function renderMemorialCandleWall(summary) {
+        const wrap = document.getElementById('memorialCandleWallWrap');
+        const grid = document.getElementById('memorialCandleWallGrid');
+        const empty = document.getElementById('memorialCandleWallEmpty');
+        if (!wrap || !grid || !empty) {
+            return;
+        }
+
+        const wallCandles = Array.isArray(summary?.wallCandles) ? summary.wallCandles : [];
+        const showWall = Boolean(summary?.settings?.showWall);
+        wrap.hidden = !showWall;
+        grid.innerHTML = '';
+
+        if (!showWall) {
+            empty.hidden = true;
+            return;
+        }
+
+        empty.hidden = wallCandles.length !== 0;
+
+        wallCandles.forEach((candle) => {
+            const badges = [];
+            if (candle?.isFamily) {
+                badges.push(`<span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">${escapeHtml(memorialCandleLabels.familyBadge)}</span>`);
+            }
+            if (candle?.isPremium) {
+                badges.push(`<span class="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-1 text-[11px] font-semibold text-white">${escapeHtml(memorialCandleLabels.premiumBadge)}</span>`);
+            }
+
+            const card = document.createElement('article');
+            card.className = 'rounded-2xl border border-border/70 bg-white/85 px-4 py-4 shadow-sm';
+            card.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-lg">🕯</div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">${badges.join('')}</div>
+                        <p class="mt-2 text-sm font-semibold text-foreground">${escapeHtml(candle?.lighterName || '')}</p>
+                        <p class="mt-1 text-xs text-muted-foreground">${escapeHtml(formatCandleDate(candle?.litAt))}</p>
+                        <p class="mt-2 text-sm leading-relaxed text-muted-foreground">${escapeHtml(candle?.message || '')}</p>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function renderMemorialCandleRecentLighters(summary) {
+        const recentWrap = document.getElementById('memorialCandleRecentWrap');
+        const recentList = document.getElementById('memorialCandleRecentList');
+        if (!recentWrap || !recentList) {
+            return;
+        }
+
+        const lighters = Array.isArray(summary?.recentLighters) ? summary.recentLighters : [];
+        const shouldShow = Boolean(summary?.settings?.showRecentLighters) && lighters.length > 0;
+        recentWrap.hidden = !shouldShow;
+        recentList.innerHTML = '';
+
+        if (!shouldShow) {
+            return;
+        }
+
+        lighters.forEach((lighter) => {
+            const item = document.createElement('li');
+            item.className = 'rounded-xl border border-border/70 bg-white/80 px-4 py-3';
+            const litAt = formatCandleDate(lighter?.litAt);
+            item.innerHTML = `
+                <p class="text-sm font-medium text-foreground">${escapeHtml(lighter?.lighterName || '')}</p>
+                <p class="mt-1 text-xs text-muted-foreground">${escapeHtml(litAt)}</p>
+                <p class="mt-2 text-sm text-muted-foreground">${escapeHtml(lighter?.message || '')}</p>
+            `;
+            recentList.appendChild(item);
+        });
+    }
+
+    function syncMemorialFamilyManager(user, summary = memorialCandleState) {
+        const manager = document.getElementById('memorialFamilyManager');
+        const premiumWrap = document.getElementById('memorialFamilyPremiumWrap');
+        const premiumInput = document.getElementById('memorialFamilyPremiumInput');
+        const messageInput = document.getElementById('memorialFamilyMessageInput');
+        const deleteButton = document.getElementById('memorialFamilyDeleteButton');
+        if (!manager || !premiumWrap || !premiumInput || !messageInput || !deleteButton) {
+            return;
+        }
+
+        const canManage = Boolean(user) && (String(user?.id || '') === memorialOwnerId || isAdminUser(user));
+        const familyEnabled = Boolean(summary?.settings?.familyEnabled);
+        manager.hidden = !(canManage && familyEnabled);
+
+        if (manager.hidden) {
+            return;
+        }
+
+        premiumWrap.hidden = !Boolean(summary?.settings?.premiumEnabled);
+        premiumInput.checked = Boolean(summary?.familyCandle?.isPremium);
+        messageInput.value = String(summary?.familyCandle?.message || '');
+        deleteButton.hidden = !Boolean(summary?.familyCandle);
+    }
+
+    function renderMemorialCandleSummary(summary, options = {}) {
+        const section = document.getElementById('memorialCandleSection');
+        if (!section || !summary) {
+            return;
+        }
+
+        memorialCandleState = summary;
+        section.hidden = !Boolean(summary.enabled);
+
+        const state = String(summary.state || 'inactive');
+        const totalCandles = Number(summary.totalCandles || 0);
+        const activeCandle = summary.activeCandle || null;
+        const familyCandle = summary.familyCandle || null;
+        const primaryVisibleCandle = activeCandle || familyCandle || null;
+
+        section.dataset.state = state;
+
+        const eyebrow = document.getElementById('memorialCandleEyebrow');
+        const subtitle = document.getElementById('memorialCandleSubtitle');
+        const countBadge = document.getElementById('memorialCandleCountBadge');
+        const countdownWrap = document.getElementById('memorialCandleCountdownWrap');
+        const currentWrap = document.getElementById('memorialCandleCurrentLighterWrap');
+        const currentLighter = document.getElementById('memorialCandleCurrentLighter');
+        const currentMessageWrap = document.getElementById('memorialCandleCurrentMessageWrap');
+        const currentMessage = document.getElementById('memorialCandleCurrentMessage');
+        const messageWrap = document.getElementById('memorialCandleMessageInputWrap');
+        const button = document.getElementById('memorialCandleButton');
+
+        if (eyebrow) {
+            eyebrow.textContent = primaryVisibleCandle ? memorialCandleLabels.eyebrowActive : memorialCandleLabels.eyebrowInactive;
+        }
+
+        if (subtitle) {
+            if (activeCandle) {
+                subtitle.textContent = memorialCandleLabels.subtitleActive;
+            } else if (familyCandle) {
+                subtitle.textContent = memorialCandleLabels.familySubtitle;
+            } else {
+                subtitle.textContent = memorialCandleLabels.subtitleInactive;
+            }
+        }
+
+        if (countBadge) {
+            countBadge.textContent = `${totalCandles} ${memorialCandleLabels.countLabel}`;
+        }
+
+        if (currentWrap && currentLighter && currentMessageWrap && currentMessage) {
+            const shouldShowCurrent = Boolean(primaryVisibleCandle?.lighterName);
+            currentWrap.hidden = !shouldShowCurrent;
+            currentLighter.textContent = shouldShowCurrent ? String(primaryVisibleCandle.lighterName || '') : '';
+            currentMessageWrap.hidden = !Boolean(primaryVisibleCandle?.message);
+            currentMessage.textContent = primaryVisibleCandle?.message ? String(primaryVisibleCandle.message) : '';
+        }
+
+        if (messageWrap) {
+            messageWrap.hidden = !Boolean(summary?.settings?.messagesEnabled);
+        }
+
+        renderMemorialCandleAnniversary(summary);
+        renderMemorialCandleFamily(summary);
+        renderMemorialCandleWall(summary);
+        renderMemorialCandleRecentLighters(summary);
+        syncMemorialFamilyManager(memorialPageViewer, summary);
+
+        if (countdownWrap) {
+            const shouldShowCountdown = Boolean(summary?.settings?.showCountdown) && primaryVisibleCandle?.expiresAt && !primaryVisibleCandle?.isPermanent;
+            countdownWrap.hidden = !shouldShowCountdown;
+
+            if (shouldShowCountdown) {
+                startMemorialCandleCountdown(primaryVisibleCandle.expiresAt);
+            } else {
+                stopMemorialCandleCountdown();
+            }
+        }
+
+        if (button) {
+            button.disabled = true;
+
+            if (summary.reason === 'auth_required') {
+                button.disabled = false;
+                button.textContent = memorialCandleLabels.loginButton;
+            } else if (summary.canLight) {
+                button.disabled = false;
+                button.textContent = memorialCandleLabels.lightButton;
+            } else if (activeCandle) {
+                button.textContent = memorialCandleLabels.activeButton;
+            } else {
+                button.textContent = memorialCandleLabels.lightButton;
+            }
+        }
+
+        if (typeof options.errorMessage === 'string' && options.errorMessage !== '') {
+            showMemorialCandleFeedback('error', options.errorMessage);
+            return;
+        }
+
+        if (typeof options.successMessage === 'string' && options.successMessage !== '') {
+            showMemorialCandleFeedback('success', options.successMessage);
+            return;
+        }
+
+        if (summary.reason === 'auth_required') {
+            showMemorialCandleFeedback('neutral', memorialCandleLabels.messages.loginRequired);
+            return;
+        }
+
+        if (state === 'disabled') {
+            showMemorialCandleFeedback('neutral', memorialCandleLabels.messages.disabled);
+            return;
+        }
+
+        if (primaryVisibleCandle) {
+            showMemorialCandleFeedback('neutral', memorialCandleLabels.messages.active);
+            return;
+        }
+
+        showMemorialCandleFeedback('neutral', memorialCandleLabels.messages.ready);
+    }
+
+    async function refreshMemorialCandleSummary() {
+        const section = document.getElementById('memorialCandleSection');
+        if (!section) {
+            return null;
+        }
+
+        const token = localStorage.getItem('auth_token') || '';
+        const headers = {
+            Accept: 'application/json',
+        };
+
+        if (token !== '') {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`/api/v1/memorials/${memorialId}/candle?lang=${encodeURIComponent(@json($currentLocale))}`, {
+            headers,
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(payload?.message || memorialCandleLabels.messages.loadFailed);
+        }
+
+        renderMemorialCandleSummary(payload?.data || null);
+
+        return payload?.data || null;
+    }
+
+    async function lightMemorialCandle() {
+        const button = document.getElementById('memorialCandleButton');
+        const messageInput = document.getElementById('memorialCandleMessageInput');
+        if (!button) {
+            return;
+        }
+
+        if (memorialCandleState?.reason === 'auth_required') {
+            window.location.href = loginUrl;
+            return;
+        }
+
+        const token = localStorage.getItem('auth_token') || '';
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = memorialCandleLabels.loading;
+
+        try {
+            const headers = {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            };
+
+            if (token !== '') {
+                headers.Authorization = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`/api/v1/memorials/${memorialId}/candle`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    locale: @json($currentLocale),
+                    message: messageInput ? messageInput.value : '',
+                }),
+            });
+
+            const payload = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(payload?.message || memorialCandleLabels.messages.requestFailed);
+            }
+
+            if (messageInput) {
+                messageInput.value = '';
+            }
+
+            renderMemorialCandleSummary(payload?.data || null, {
+                successMessage: payload?.message || '',
+            });
+        } catch (error) {
+            button.disabled = false;
+            button.textContent = originalLabel;
+            renderMemorialCandleSummary(memorialCandleState, {
+                errorMessage: error?.message || memorialCandleLabels.messages.requestFailed,
+            });
+        }
+    }
+
+    async function saveMemorialFamilyCandle(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('memorialFamilyForm');
+        const button = document.getElementById('memorialFamilySaveButton');
+        const messageInput = document.getElementById('memorialFamilyMessageInput');
+        const premiumInput = document.getElementById('memorialFamilyPremiumInput');
+        const token = localStorage.getItem('auth_token') || '';
+        if (!form || !button || token === '') {
+            return;
+        }
+
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = memorialCandleLabels.familyManageSaving;
+
+        try {
+            const response = await fetch(`/api/v1/memorials/${memorialId}/candle/family`, {
+                method: 'PUT',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    locale: @json($currentLocale),
+                    message: messageInput ? messageInput.value : '',
+                    is_premium: Boolean(premiumInput?.checked),
+                }),
+            });
+
+            const payload = await response.json().catch(() => null);
+            if (!response.ok) {
+                throw new Error(payload?.message || memorialCandleLabels.messages.requestFailed);
+            }
+
+            renderMemorialCandleSummary(payload?.data || null, {
+                successMessage: payload?.message || memorialCandleLabels.messages.familySaved,
+            });
+            showMemorialFamilyManagerFeedback('success', payload?.message || memorialCandleLabels.messages.familySaved);
+        } catch (error) {
+            showMemorialFamilyManagerFeedback('error', error?.message || memorialCandleLabels.messages.requestFailed);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalLabel;
+        }
+    }
+
+    async function deleteMemorialFamilyCandle() {
+        const button = document.getElementById('memorialFamilyDeleteButton');
+        const token = localStorage.getItem('auth_token') || '';
+        if (!button || token === '') {
+            return;
+        }
+
+        if (!window.confirm(memorialCandleLabels.familyManageDeleteConfirm)) {
+            return;
+        }
+
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = memorialCandleLabels.familyManageSaving;
+
+        try {
+            const response = await fetch(`/api/v1/memorials/${memorialId}/candle/family`, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    locale: @json($currentLocale),
+                }),
+            });
+
+            const payload = await response.json().catch(() => null);
+            if (!response.ok) {
+                throw new Error(payload?.message || memorialCandleLabels.messages.requestFailed);
+            }
+
+            renderMemorialCandleSummary(payload?.data || null, {
+                successMessage: payload?.message || memorialCandleLabels.messages.familyDeleted,
+            });
+            showMemorialFamilyManagerFeedback('success', payload?.message || memorialCandleLabels.messages.familyDeleted);
+        } catch (error) {
+            showMemorialFamilyManagerFeedback('error', error?.message || memorialCandleLabels.messages.requestFailed);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalLabel;
+        }
+    }
+
+    function initializeMemorialCandle() {
+        const section = document.getElementById('memorialCandleSection');
+        const button = document.getElementById('memorialCandleButton');
+        const familyForm = document.getElementById('memorialFamilyForm');
+        const familyDeleteButton = document.getElementById('memorialFamilyDeleteButton');
+
+        if (!section || !button) {
+            return;
+        }
+
+        renderMemorialCandleSummary(memorialCandleInitialState);
+        button.addEventListener('click', lightMemorialCandle);
+
+        if (familyForm) {
+            familyForm.addEventListener('submit', saveMemorialFamilyCandle);
+        }
+
+        if (familyDeleteButton) {
+            familyDeleteButton.addEventListener('click', deleteMemorialFamilyCandle);
+        }
+
+        refreshMemorialCandleSummary().catch(() => {
+            return;
+        });
     }
 
     function showTributeActionMessage(type, text) {
@@ -231,12 +941,8 @@
         }
     }
 
-    async function initializeTributeModeration() {
+    async function initializeMemorialOwnerTools() {
         const tributeDeleteButtons = Array.from(document.querySelectorAll('[data-tribute-delete]'));
-        if (!tributeDeleteButtons.length) {
-            return;
-        }
-
         const token = localStorage.getItem('auth_token') || '';
         if (token === '') {
             return;
@@ -260,6 +966,9 @@
                 return;
             }
 
+            memorialPageViewer = user;
+            syncMemorialFamilyManager(user, memorialCandleState);
+
             const canModerateTributes = String(user.id || '') === memorialOwnerId || isAdminUser(user);
             if (!canModerateTributes) {
                 return;
@@ -281,7 +990,8 @@
             timestampField.value = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
         }
 
-        initializeTributeModeration();
+        initializeMemorialCandle();
+        initializeMemorialOwnerTools();
     });
 </script>
 @endpush
@@ -344,6 +1054,321 @@
                         -
                         {{ \Carbon\Carbon::parse($memorial->death_date)->format('d.m.Y.') }}
                     </div>
+
+                    @if($isCandleFeatureEnabled)
+                        <div class="w-full max-w-2xl pt-6 border-t border-border">
+                            <section
+                                id="memorialCandleSection"
+                                data-state="{{ (string) ($candleSummary['state'] ?? 'inactive') }}"
+                                class="memorial-candle-section overflow-hidden rounded-[1.75rem] border border-amber-100/80 bg-gradient-to-br from-[#fff7ec] via-white to-[#f4ede3] p-5 text-left shadow-[0_18px_50px_rgba(120,92,45,0.12)] md:p-6"
+                            >
+                                <div class="space-y-5">
+                                    <div
+                                        id="memorialCandleAnniversaryWrap"
+                                        class="rounded-2xl border border-amber-200/80 bg-white/85 px-5 py-4 shadow-sm"
+                                        @if(!$anniversaryHighlight)
+                                            hidden
+                                        @endif
+                                    >
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700/80">{{ __('ui.memorial.candle.anniversary_title') }}</p>
+                                        <h4 id="memorialCandleAnniversaryHeadline" class="mt-2 text-lg font-serif font-semibold text-primary">
+                                            {{ $anniversaryHighlight['headline'] ?? '' }}
+                                        </h4>
+                                        <p id="memorialCandleAnniversaryDescription" class="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                            {{ $anniversaryHighlight['description'] ?? '' }}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        id="memorialFamilyCandleWrap"
+                                        class="rounded-2xl border border-amber-300/80 bg-[linear-gradient(135deg,rgba(255,250,240,0.95),rgba(255,244,220,0.92))] px-5 py-5 shadow-[0_10px_24px_rgba(191,144,66,0.14)]"
+                                        @if(!$familyCandle)
+                                            hidden
+                                        @endif
+                                    >
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">{{ __('ui.memorial.candle.family_badge') }}</span>
+                                            <span
+                                                id="memorialFamilyCandlePremiumBadge"
+                                                class="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-1 text-[11px] font-semibold text-white"
+                                                @if(!($familyCandle['isPremium'] ?? false))
+                                                    hidden
+                                                @endif
+                                            >
+                                                {{ __('ui.memorial.candle.premium_badge') }}
+                                            </span>
+                                        </div>
+                                        <h4 class="mt-3 text-xl font-serif font-semibold text-primary">{{ __('ui.memorial.candle.family_title') }}</h4>
+                                        <p class="mt-1 text-sm text-muted-foreground">{{ __('ui.memorial.candle.family_subtitle') }}</p>
+                                        <div class="mt-4 rounded-xl border border-border/60 bg-white/85 px-4 py-4">
+                                            <p id="memorialFamilyCandleLighter" class="text-sm font-semibold text-foreground">{{ $familyCandle['lighterName'] ?? '' }}</p>
+                                            <p
+                                                id="memorialFamilyCandleMessage"
+                                                class="mt-2 text-sm leading-relaxed text-muted-foreground"
+                                            >{{ $familyCandle['message'] ?? '' }}</p>
+                                            <p id="memorialFamilyCandleMeta" class="mt-3 text-xs font-medium uppercase tracking-[0.22em] text-amber-800/90">
+                                                @if($familyCandle)
+                                                    @if($familyCandle['isPermanent'] ?? false)
+                                                        {{ __('ui.memorial.candle.permanent_label') }}
+                                                    @elseif(isset($familyCandle['secondsRemaining']))
+                                                        {{ __('ui.memorial.candle.remaining') }}: {{ max(1, (int) ceil(((int) $familyCandle['secondsRemaining']) / 60)) }}{{ __('ui.memorial.candle.countdown_units.minute') }}
+                                                    @endif
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid gap-6 lg:grid-cols-[220px_1fr] lg:items-center">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="relative flex h-44 w-36 items-end justify-center">
+                                                <div class="memorial-candle-glow absolute bottom-24 h-16 w-16 rounded-full bg-amber-300/60 blur-2xl"></div>
+                                                <div class="absolute bottom-[7.3rem] h-5 w-1 rounded-full bg-stone-700/80"></div>
+                                                <div class="memorial-candle-flame absolute bottom-28 h-16 w-10 rounded-[999px_999px_999px_999px] bg-gradient-to-t from-amber-500 via-yellow-200 to-white shadow-[0_0_35px_rgba(245,172,59,0.55)]"></div>
+                                            <div class="memorial-candle-inner-flame absolute bottom-[7.7rem] h-9 w-5 rounded-[999px_999px_999px_999px] bg-gradient-to-t from-orange-300 via-yellow-100 to-white"></div>
+                                            <div class="relative h-28 w-16 overflow-hidden rounded-t-[2rem] rounded-b-lg border border-amber-100 bg-gradient-to-b from-white via-amber-50 to-amber-200 shadow-inner">
+                                                <div class="absolute inset-x-2 top-2 h-5 rounded-full bg-white/80"></div>
+                                                <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-amber-300/50 to-transparent"></div>
+                                            </div>
+                                            <div class="absolute bottom-0 h-4 w-28 rounded-full bg-stone-300/70 blur-md"></div>
+                                        </div>
+
+                                        <div class="text-center">
+                                            <p id="memorialCandleEyebrow" class="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-700/80">
+                                                {{ $activeCandle ? __('ui.memorial.candle.eyebrow_active') : __('ui.memorial.candle.eyebrow_inactive') }}
+                                            </p>
+                                            <p id="memorialCandleCountBadge" class="mt-2 text-sm text-muted-foreground">
+                                                {{ (int) ($candleSummary['totalCandles'] ?? 0) }} {{ __('ui.memorial.candle.count_label') }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                        <div class="space-y-4">
+                                            <div>
+                                                <h3 class="text-2xl font-serif font-semibold text-primary">{{ __('ui.memorial.candle.title') }}</h3>
+                                                <p id="memorialCandleSubtitle" class="mt-2 text-sm leading-relaxed text-muted-foreground md:text-base">
+                                                    @if($activeCandle)
+                                                        {{ __('ui.memorial.candle.subtitle_active') }}
+                                                    @elseif($familyCandle)
+                                                        {{ __('ui.memorial.candle.family_subtitle') }}
+                                                    @else
+                                                        {{ __('ui.memorial.candle.subtitle_inactive') }}
+                                                    @endif
+                                                </p>
+                                            </div>
+
+                                            <div class="flex flex-wrap gap-3 text-sm">
+                                                <div
+                                                    id="memorialCandleCountdownWrap"
+                                                    class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/90 px-4 py-2 text-foreground"
+                                                    @if(!(($primaryVisibleCandle['expiresAt'] ?? null) && !($primaryVisibleCandle['isPermanent'] ?? false) && ($candleSettings['showCountdown'] ?? false)))
+                                                        hidden
+                                                    @endif
+                                                >
+                                                    <span class="text-muted-foreground">{{ __('ui.memorial.candle.remaining') }}</span>
+                                                    <span id="memorialCandleCountdownValue" class="font-semibold text-primary">
+                                                        @if($primaryVisibleCandle && !($primaryVisibleCandle['isPermanent'] ?? false))
+                                                            {{ max(1, (int) ceil(((int) ($primaryVisibleCandle['secondsRemaining'] ?? 0)) / 60)) }}{{ __('ui.memorial.candle.countdown_units.minute') }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                id="memorialCandleCurrentLighterWrap"
+                                                class="rounded-xl border border-border/70 bg-white/80 px-4 py-3"
+                                                @if(!$primaryVisibleCandle)
+                                                    hidden
+                                                @endif
+                                            >
+                                                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">{{ __('ui.memorial.candle.current_lighter') }}</p>
+                                                <p id="memorialCandleCurrentLighter" class="mt-1 text-sm font-medium text-foreground">
+                                                    {{ $primaryVisibleCandle['lighterName'] ?? '' }}
+                                                </p>
+                                                <p
+                                                    id="memorialCandleCurrentMessageWrap"
+                                                    class="mt-2 text-sm leading-relaxed text-muted-foreground"
+                                                    @if(!($primaryVisibleCandle['message'] ?? null))
+                                                        hidden
+                                                    @endif
+                                                >
+                                                    <span id="memorialCandleCurrentMessage">{{ $primaryVisibleCandle['message'] ?? '' }}</span>
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                id="memorialCandleMessageInputWrap"
+                                                class="space-y-2 rounded-xl border border-border/70 bg-white/80 px-4 py-4"
+                                                @if(!($candleSettings['messagesEnabled'] ?? false))
+                                                    hidden
+                                                @endif
+                                            >
+                                                <label for="memorialCandleMessageInput" class="block text-sm font-medium text-foreground">{{ __('ui.memorial.candle.message_label') }}</label>
+                                                <textarea
+                                                    id="memorialCandleMessageInput"
+                                                    rows="3"
+                                                    maxlength="280"
+                                                    placeholder="{{ __('ui.memorial.candle.message_placeholder') }}"
+                                                    class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm leading-relaxed text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                                                ></textarea>
+                                                <p class="text-xs text-muted-foreground">{{ __('ui.memorial.candle.message_hint') }}</p>
+                                            </div>
+
+                                            <div
+                                                id="memorialCandleWallWrap"
+                                                class="space-y-3"
+                                                @if(!($candleSettings['showWall'] ?? false))
+                                                    hidden
+                                                @endif
+                                            >
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <h4 class="text-lg font-serif font-semibold text-primary">{{ __('ui.memorial.candle.wall_title') }}</h4>
+                                                    <span class="text-xs uppercase tracking-[0.22em] text-muted-foreground">{{ $candleWallItems->count() }}</span>
+                                                </div>
+                                                <p
+                                                    id="memorialCandleWallEmpty"
+                                                    class="rounded-xl border border-dashed border-border/80 bg-white/70 px-4 py-4 text-sm text-muted-foreground"
+                                                    @if($candleWallItems->isNotEmpty())
+                                                        hidden
+                                                    @endif
+                                                >
+                                                    {{ __('ui.memorial.candle.wall_empty') }}
+                                                </p>
+                                                <div id="memorialCandleWallGrid" class="grid gap-3 sm:grid-cols-2">
+                                                    @foreach($candleWallItems as $wallCandle)
+                                                        <article class="rounded-2xl border border-border/70 bg-white/85 px-4 py-4 shadow-sm">
+                                                            <div class="flex items-start gap-3">
+                                                                <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-lg">🕯</div>
+                                                                <div class="min-w-0 flex-1">
+                                                                    <div class="flex flex-wrap items-center gap-2">
+                                                                        @if($wallCandle['isFamily'] ?? false)
+                                                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-800">{{ __('ui.memorial.candle.family_badge') }}</span>
+                                                                        @endif
+                                                                        @if($wallCandle['isPremium'] ?? false)
+                                                                            <span class="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-1 text-[11px] font-semibold text-white">{{ __('ui.memorial.candle.premium_badge') }}</span>
+                                                                        @endif
+                                                                    </div>
+                                                                    <p class="mt-2 text-sm font-semibold text-foreground">{{ $wallCandle['lighterName'] ?? '' }}</p>
+                                                                    <p class="mt-1 text-xs text-muted-foreground">
+                                                                        @if(isset($wallCandle['litAt']))
+                                                                            {{ \Carbon\Carbon::parse($wallCandle['litAt'])->translatedFormat('d. M Y.') }}
+                                                                        @endif
+                                                                    </p>
+                                                                    <p class="mt-2 text-sm leading-relaxed text-muted-foreground">{{ $wallCandle['message'] ?? '' }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </article>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                id="memorialCandleRecentWrap"
+                                                class="space-y-2"
+                                                @if(!(($candleSettings['showRecentLighters'] ?? false) && $recentCandleLighters->isNotEmpty()))
+                                                hidden
+                                            @endif
+                                        >
+                                                <p class="text-sm font-medium text-primary">{{ __('ui.memorial.candle.recent_lighters') }}</p>
+                                                <ul id="memorialCandleRecentList" class="grid gap-2 sm:grid-cols-2">
+                                                    @foreach($recentCandleLighters as $lighter)
+                                                        <li class="rounded-xl border border-border/70 bg-white/80 px-4 py-3">
+                                                            <p class="text-sm font-medium text-foreground">{{ $lighter['lighterName'] ?? '' }}</p>
+                                                            <p class="mt-1 text-xs text-muted-foreground">
+                                                                @if(isset($lighter['litAt']))
+                                                                    {{ \Carbon\Carbon::parse($lighter['litAt'])->translatedFormat('d. M Y.') }}
+                                                                @endif
+                                                            </p>
+                                                            <p class="mt-2 text-sm text-muted-foreground">{{ $lighter['message'] ?? '' }}</p>
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+
+                                            <div
+                                                id="memorialFamilyManager"
+                                                class="space-y-3 rounded-2xl border border-amber-200/80 bg-white/85 px-4 py-4 shadow-sm"
+                                                hidden
+                                            >
+                                                <div>
+                                                    <h4 class="text-lg font-serif font-semibold text-primary">{{ __('ui.memorial.candle.family_manage_title') }}</h4>
+                                                    <p class="mt-1 text-sm text-muted-foreground">{{ __('ui.memorial.candle.family_manage_hint') }}</p>
+                                                </div>
+
+                                                <form id="memorialFamilyForm" class="space-y-3">
+                                                    <div class="space-y-2">
+                                                        <label for="memorialFamilyMessageInput" class="block text-sm font-medium text-foreground">{{ __('ui.memorial.candle.family_manage_message_label') }}</label>
+                                                        <textarea
+                                                            id="memorialFamilyMessageInput"
+                                                            rows="3"
+                                                            maxlength="320"
+                                                            placeholder="{{ __('ui.memorial.candle.family_manage_message_placeholder') }}"
+                                                            class="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm leading-relaxed text-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                                                        ></textarea>
+                                                    </div>
+
+                                                    <label
+                                                        id="memorialFamilyPremiumWrap"
+                                                        class="flex items-center gap-3 rounded-xl border border-border/70 bg-background px-4 py-3 text-sm text-foreground"
+                                                        hidden
+                                                    >
+                                                        <input id="memorialFamilyPremiumInput" type="checkbox" class="h-4 w-4 rounded border-border text-accent focus:ring-ring">
+                                                        <span>{{ __('ui.memorial.candle.family_manage_premium_label') }}</span>
+                                                    </label>
+
+                                                    <div class="flex flex-wrap gap-3">
+                                                        <button
+                                                            id="memorialFamilySaveButton"
+                                                            type="submit"
+                                                            class="inline-flex h-10 items-center justify-center rounded-xl bg-stone-900 px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                                        >
+                                                            {{ __('ui.memorial.candle.family_manage_save') }}
+                                                        </button>
+                                                        <button
+                                                            id="memorialFamilyDeleteButton"
+                                                            type="button"
+                                                            class="inline-flex h-10 items-center justify-center rounded-xl border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                                                            hidden
+                                                        >
+                                                            {{ __('ui.memorial.candle.family_manage_delete') }}
+                                                        </button>
+                                                    </div>
+
+                                                    <p id="memorialFamilyManagerFeedback" class="hidden text-sm"></p>
+                                                </form>
+                                            </div>
+
+                                            <div class="space-y-3">
+                                                <button
+                                                    id="memorialCandleButton"
+                                                    type="button"
+                                                    class="inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#d6a257] via-[#efc06a] to-[#f6d7a2] px-5 text-sm font-semibold text-stone-900 shadow-[0_14px_28px_rgba(190,141,62,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_30px_rgba(190,141,62,0.28)] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+                                                >
+                                                    @if(($candleSummary['reason'] ?? '') === 'auth_required')
+                                                        {{ __('ui.memorial.candle.login_button') }}
+                                                    @elseif($candleSummary['canLight'] ?? false)
+                                                        {{ __('ui.memorial.candle.light_button') }}
+                                                    @elseif($activeCandle)
+                                                        {{ __('ui.memorial.candle.active_button') }}
+                                                    @else
+                                                        {{ __('ui.memorial.candle.light_button') }}
+                                                    @endif
+                                                </button>
+                                                <p id="memorialCandleFeedback" class="text-sm text-muted-foreground">
+                                                    @if($primaryVisibleCandle)
+                                                        {{ __('ui.memorial.candle.messages.active') }}
+                                                    @elseif(($candleSummary['reason'] ?? '') === 'auth_required')
+                                                        {{ __('ui.memorial.candle.messages.login_required') }}
+                                                    @else
+                                                        {{ __('ui.memorial.candle.messages.ready') }}
+                                                    @endif
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    @endif
 
                     @if($localizedBirthPlace || $localizedDeathPlace)
                         <div class="w-full max-w-md pt-4 space-y-2 border-t border-border">

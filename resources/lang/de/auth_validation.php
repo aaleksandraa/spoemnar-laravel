@@ -34,6 +34,12 @@ return [
         'in' => 'Die ausgewaehlte Sprache wird nicht unterstuetzt.',
     ],
 
+    'account' => [
+        'current_password_required' => 'Ihr aktuelles Passwort ist erforderlich, wenn Sie Ihre E Mail oder Ihr Passwort aendern.',
+        'current_password_invalid' => 'Das eingegebene aktuelle Passwort ist nicht korrekt.',
+        'new_password_same' => 'Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.',
+    ],
+
     'security' => [
         'bot_detected' => 'Die Registrierung wurde durch die Anti-Spam-Pruefung blockiert.',
         'disposable_email' => 'Temporare E-Mail-Adressen sind fuer die Registrierung nicht erlaubt.',

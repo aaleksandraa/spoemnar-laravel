@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HeroSettingsController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MemorialController;
+use App\Http\Controllers\MemorialCandleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TributeController;
@@ -50,6 +52,8 @@ Route::prefix('v1')->group(function () {
     // Public tribute routes
     Route::get('/memorials/{memorial}/tributes', [TributeController::class, 'index']);
     Route::post('/memorials/{memorial}/tributes', [TributeController::class, 'store'])->middleware('throttle:3,10');
+    Route::get('/memorials/{memorial}/candle', [MemorialCandleController::class, 'show'])->middleware('optional.auth');
+    Route::post('/memorials/{memorial}/candle', [MemorialCandleController::class, 'store'])->middleware(['optional.auth', 'throttle:6,10']);
 
     // Search route (public)
     Route::get('/search', [SearchController::class, 'search'])->middleware(['optional.auth', 'throttle:search']);
@@ -62,6 +66,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::get('/account', [AccountController::class, 'show']);
+        Route::put('/account', [AccountController::class, 'update']);
+        Route::put('/memorials/{memorial}/candle/family', [MemorialCandleController::class, 'upsertFamily']);
+        Route::delete('/memorials/{memorial}/candle/family', [MemorialCandleController::class, 'destroyFamily']);
 
         // Profile routes
         Route::get('/profiles/{user}', [ProfileController::class, 'show']);

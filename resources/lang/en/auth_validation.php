@@ -34,6 +34,12 @@ return [
         'in' => 'Selected language is not supported.',
     ],
 
+    'account' => [
+        'current_password_required' => 'Your current password is required when changing your email or password.',
+        'current_password_invalid' => 'The current password you entered is incorrect.',
+        'new_password_same' => 'Your new password must be different from the current password.',
+    ],
+
     'security' => [
         'bot_detected' => 'Registration request was blocked by the anti-spam check.',
         'disposable_email' => 'Disposable email addresses are not allowed for registration.',

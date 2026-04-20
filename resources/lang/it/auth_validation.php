@@ -34,6 +34,12 @@ return [
         'in' => 'La lingua selezionata non e supportata.',
     ],
 
+    'account' => [
+        'current_password_required' => 'La password attuale e obbligatoria quando cambi email o password.',
+        'current_password_invalid' => 'La password attuale inserita non e corretta.',
+        'new_password_same' => 'La nuova password deve essere diversa da quella attuale.',
+    ],
+
     'security' => [
         'bot_detected' => 'La registrazione e stata bloccata dal controllo antispam.',
         'disposable_email' => 'Gli indirizzi email temporanei non sono consentiti per la registrazione.',

@@ -319,6 +319,15 @@
                 paypal_payment: @json(__('ui.admin.setting_labels.paypal_payment')),
                 physical_qr_delivery: @json(__('ui.admin.setting_labels.physical_qr_delivery')),
                 paid_memorials: @json(__('ui.admin.setting_labels.paid_memorials')),
+                memorial_candles_enabled: @json(__('ui.admin.setting_labels.memorial_candles_enabled')),
+                memorial_candles_allow_anonymous: @json(__('ui.admin.setting_labels.memorial_candles_allow_anonymous')),
+                memorial_candles_show_countdown: @json(__('ui.admin.setting_labels.memorial_candles_show_countdown')),
+                memorial_candles_show_recent_lighters: @json(__('ui.admin.setting_labels.memorial_candles_show_recent_lighters')),
+                memorial_candles_messages_enabled: @json(__('ui.admin.setting_labels.memorial_candles_messages_enabled')),
+                memorial_candles_show_wall: @json(__('ui.admin.setting_labels.memorial_candles_show_wall')),
+                memorial_candles_family_enabled: @json(__('ui.admin.setting_labels.memorial_candles_family_enabled')),
+                memorial_candles_premium_enabled: @json(__('ui.admin.setting_labels.memorial_candles_premium_enabled')),
+                memorial_candles_anniversary_highlights_enabled: @json(__('ui.admin.setting_labels.memorial_candles_anniversary_highlights_enabled')),
             },
             users: {
                 admin: @json(__('ui.admin.role_admin')),
@@ -607,7 +616,21 @@
 
             const settingsResponse = await apiRequest('/api/v1/admin/settings');
             const settings = Array.isArray(settingsResponse?.data) ? settingsResponse.data : [];
-            const keyOrder = ['card_payment', 'paypal_payment', 'physical_qr_delivery', 'paid_memorials'];
+            const keyOrder = [
+                'card_payment',
+                'paypal_payment',
+                'physical_qr_delivery',
+                'paid_memorials',
+                'memorial_candles_enabled',
+                'memorial_candles_allow_anonymous',
+                'memorial_candles_show_countdown',
+                'memorial_candles_show_recent_lighters',
+                'memorial_candles_messages_enabled',
+                'memorial_candles_show_wall',
+                'memorial_candles_family_enabled',
+                'memorial_candles_premium_enabled',
+                'memorial_candles_anniversary_highlights_enabled',
+            ];
             settings.sort((a, b) => keyOrder.indexOf(a.key) - keyOrder.indexOf(b.key));
 
             settingsList.innerHTML = '';

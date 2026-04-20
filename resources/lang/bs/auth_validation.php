@@ -34,6 +34,12 @@ return [
         'in' => 'Odabrani jezik nije podrzan.',
     ],
 
+    'account' => [
+        'current_password_required' => 'Trenutna lozinka je obavezna kada mijenjate email ili lozinku.',
+        'current_password_invalid' => 'Trenutna lozinka nije ispravna.',
+        'new_password_same' => 'Nova lozinka mora biti drugacija od trenutne lozinke.',
+    ],
+
     'security' => [
         'bot_detected' => 'Registracija je blokirana antispam provjerom.',
         'disposable_email' => 'Privremene email adrese nisu dozvoljene za registraciju.',

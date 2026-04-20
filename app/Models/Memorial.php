@@ -85,6 +85,11 @@ class Memorial extends Model
         return $this->hasMany(Tribute::class);
     }
 
+    public function candles()
+    {
+        return $this->hasMany(MemorialCandle::class)->orderByDesc('created_at');
+    }
+
     public function translations()
     {
         return $this->hasMany(MemorialTranslation::class);

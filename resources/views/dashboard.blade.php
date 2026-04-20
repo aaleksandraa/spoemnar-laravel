@@ -8,6 +8,7 @@
     $createMemorialUrl = route('memorial.create', ['locale' => $currentLocale]);
     $loginUrl = route('login', ['locale' => $currentLocale]);
     $homeUrl = route('home', ['locale' => $currentLocale]);
+    $accountUrl = route('account', ['locale' => $currentLocale]);
     $profileUrlTemplate = route('memorial.profile', ['locale' => $currentLocale, 'slug' => '__SLUG__']);
     $editUrlTemplate = route('memorial.edit', ['locale' => $currentLocale, 'slug' => '__SLUG__']);
 @endphp
@@ -25,6 +26,9 @@
                 <div class="flex items-center gap-3">
                     <a href="{{ $createMemorialUrl }}" class="inline-flex items-center justify-center px-5 h-11 rounded-lg bg-gradient-accent text-accent-foreground font-semibold hover:opacity-90 transition-opacity">
                         {{ __('ui.dashboard.create_memorial') }}
+                    </a>
+                    <a href="{{ $accountUrl }}" class="inline-flex items-center justify-center px-5 h-11 rounded-lg border border-border hover:bg-muted transition-colors">
+                        {{ __('ui.dashboard.profile') }}
                     </a>
                     <button id="dashboardLogoutBtn" type="button" class="inline-flex items-center justify-center px-5 h-11 rounded-lg border border-border hover:bg-muted transition-colors">
                         {{ __('ui.dashboard.logout') }}
@@ -80,8 +84,6 @@
         const homeUrl = @json($homeUrl);
         const profileTemplate = @json($profileUrlTemplate);
         const editTemplate = @json($editUrlTemplate);
-        const createUrl = @json($createMemorialUrl);
-
         const alertBox = document.getElementById('dashboardAlert');
         const loadingState = document.getElementById('dashboardLoading');
         const emptyState = document.getElementById('dashboardEmpty');
@@ -290,7 +292,7 @@
                 }
 
                 userEl.classList.remove('hidden');
-                userEl.textContent = me.email || '';
+                userEl.textContent = me?.profile?.full_name || me.email || '';
 
                 const memorialsResponse = await apiRequest('/api/v1/memorials?per_page=100&mine=1');
                 const memorials = Array.isArray(memorialsResponse?.data) ? memorialsResponse.data : [];

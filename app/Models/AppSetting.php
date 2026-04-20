@@ -28,6 +28,15 @@ class AppSetting extends Model
             'paypal_payment' => true,
             'physical_qr_delivery' => false,
             'paid_memorials' => false,
+            'memorial_candles_enabled' => true,
+            'memorial_candles_allow_anonymous' => true,
+            'memorial_candles_show_countdown' => true,
+            'memorial_candles_show_recent_lighters' => true,
+            'memorial_candles_messages_enabled' => true,
+            'memorial_candles_show_wall' => true,
+            'memorial_candles_family_enabled' => true,
+            'memorial_candles_premium_enabled' => true,
+            'memorial_candles_anniversary_highlights_enabled' => true,
         ];
     }
 
@@ -40,5 +49,25 @@ class AppSetting extends Model
             );
         }
     }
-}
 
+    public static function getBoolean(string $key): bool
+    {
+        $defaults = self::defaultBooleanSettings();
+        $defaultValue = $defaults[$key] ?? false;
+
+        $setting = self::query()
+            ->where('setting_key', $key)
+            ->first();
+
+        if (!$setting) {
+            return $defaultValue;
+        }
+
+        return self::isTruthyValue($setting->setting_value);
+    }
+
+    private static function isTruthyValue(?string $value): bool
+    {
+        return in_array(strtolower((string) $value), ['1', 'true', 'yes', 'on'], true);
+    }
+}

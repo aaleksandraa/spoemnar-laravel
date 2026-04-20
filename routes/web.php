@@ -5,6 +5,7 @@ use App\Models\Country;
 use App\Models\HeroSettings;
 use App\Models\Memorial;
 use App\Models\Place;
+use App\Services\MemorialCandleService;
 use App\Services\TributeService;
 use App\Support\LocaleResolver;
 use App\Support\MemorialSearch;
@@ -251,7 +252,12 @@ $renderMemorialBySlug = static function (string $locale, string $slug) {
         ])
         ->firstOrFail();
 
-    return view('memorial', compact('memorial'));
+    $candleSummary = app(MemorialCandleService::class)->summary(
+        memorial: $memorial,
+        locale: $locale,
+    );
+
+    return view('memorial', compact('memorial', 'candleSummary'));
 };
 
 $storeTribute = static function (Request $request, Memorial $memorial, string $locale) {
@@ -435,6 +441,7 @@ Route::prefix('{locale}')
             'email' => (string) $request->query('email', ''),
         ]))->name('password.reset.form');
         Route::get('/dashboard', static fn (string $locale) => view('dashboard'))->name('dashboard');
+        Route::get('/account', static fn (string $locale) => view('account'))->name('account');
         Route::get('/create', static fn (string $locale) => view('memorial-form', ['mode' => 'create', 'slug' => null]))->name('memorial.create');
         Route::get('/edit/{slug}', static fn (string $locale, string $slug) => view('memorial-form', ['mode' => 'edit', 'slug' => $slug]))->middleware('validate.slug')->name('memorial.edit');
         Route::get('/admin', static fn (string $locale) => view('admin'))->name('admin.panel');
@@ -496,6 +503,10 @@ Route::get('/reset-password/{token}', static function (Request $request, string 
 
 Route::get('/dashboard', static function (Request $request) use ($detectLocale) {
     return redirect()->route('dashboard', ['locale' => $detectLocale($request)], 301);
+});
+
+Route::get('/account', static function (Request $request) use ($detectLocale) {
+    return redirect()->route('account', ['locale' => $detectLocale($request)], 301);
 });
 
 Route::get('/create', static function (Request $request) use ($detectLocale) {
