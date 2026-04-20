@@ -60,21 +60,30 @@
     @if($isCandleFeatureEnabled)
         <style>
             @keyframes memorial-candle-flicker {
-                0%, 100% { transform: translate3d(0, 0, 0) scale(1) rotate(-1deg); opacity: 0.92; }
-                20% { transform: translate3d(1px, -2px, 0) scale(1.07, 0.95) rotate(1deg); opacity: 1; }
-                45% { transform: translate3d(-1px, -3px, 0) scale(0.96, 1.06) rotate(-2deg); opacity: 0.84; }
-                70% { transform: translate3d(1px, -1px, 0) scale(1.04, 0.97) rotate(2deg); opacity: 0.98; }
+                0%, 100% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.9; }
+                25% { transform: translateX(-49%) scale(1.04) rotate(1deg); opacity: 1; }
+                50% { transform: translateX(-51%) scale(0.96) rotate(-2deg); opacity: 0.85; }
+                75% { transform: translateX(-49.5%) scale(1.02) rotate(2deg); opacity: 1; }
             }
 
             @keyframes memorial-candle-glow {
-                0%, 100% { opacity: 0.4; transform: scale(0.88); }
-                50% { opacity: 0.92; transform: scale(1.18); }
+                0%, 100% { opacity: 0.25; transform: translateX(-50%) scale(1); }
+                50% { opacity: 0.5; transform: translateX(-50%) scale(1.15); }
             }
 
             @keyframes memorial-candle-smoke {
-                0% { opacity: 0.18; transform: translate3d(0, 0, 0) scale(0.88); }
-                45% { opacity: 0.48; transform: translate3d(-2px, -10px, 0) scale(1.04); }
-                100% { opacity: 0; transform: translate3d(3px, -18px, 0) scale(1.22); }
+                0% {
+                    opacity: 0.35;
+                    transform: translateX(-50%) translateY(0) scale(1);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-10px) scale(1.3);
+                }
+            }
+
+            .memorial-candle-stage {
+                background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
             }
 
             .memorial-candle-flame,
@@ -82,8 +91,26 @@
             .memorial-candle-glow,
             .memorial-candle-halo,
             .memorial-candle-smoke,
-            .memorial-candle-body {
+            .memorial-candle-body,
+            .memorial-candle-wick {
                 transition: opacity 700ms ease, transform 700ms ease, filter 700ms ease, box-shadow 700ms ease;
+            }
+
+            .memorial-candle-body {
+                width: 22px !important;
+                height: 110px !important;
+                border-radius: 8px !important;
+                position: relative;
+            }
+
+            .memorial-candle-wick {
+                width: 2px !important;
+                height: 10px !important;
+                top: -10px !important;
+                left: 50% !important;
+                bottom: auto !important;
+                transform: translateX(-50%) !important;
+                border-radius: 2px !important;
             }
 
             .memorial-candle-flame,
@@ -94,37 +121,67 @@
                 visibility: hidden;
             }
 
+            .memorial-candle-halo {
+                display: none !important;
+            }
+
+            .memorial-candle-inner-flame {
+                display: none !important;
+            }
+
+            .memorial-candle-glow {
+                width: 50px !important;
+                height: 50px !important;
+                left: 50% !important;
+                transform: translateX(-50%);
+                background: radial-gradient(circle, rgba(255,190,80,0.22), transparent 70%) !important;
+            }
+
+            .memorial-candle-flame {
+                width: 12px !important;
+                height: 26px !important;
+                left: 50% !important;
+                transform: translateX(-50%);
+                border-radius: 50% 50% 45% 45% !important;
+                background: radial-gradient(circle at 50% 30%, #fff7c2 0%, #ffd36a 40%, #ff8c2a 75%, transparent 100%) !important;
+                filter: blur(0.4px);
+            }
+
+            .memorial-candle-smoke {
+                width: 8px !important;
+                height: 12px !important;
+                left: 50% !important;
+                transform: translateX(-50%);
+                background: radial-gradient(circle, rgba(200,200,200,0.25), transparent 70%) !important;
+                border-radius: 50% !important;
+            }
+
             .memorial-candle-section[data-state="active"] .memorial-candle-flame {
                 display: block;
                 animation: memorial-candle-flicker 2.6s ease-in-out infinite;
                 opacity: 1;
                 visibility: visible;
-                filter: saturate(1.08);
             }
 
-            .memorial-candle-section[data-state="active"] .memorial-candle-inner-flame {
-                display: block;
-                animation: memorial-candle-flicker 2.1s ease-in-out infinite reverse;
-                opacity: 1;
-                visibility: visible;
-            }
-
-            .memorial-candle-section[data-state="active"] .memorial-candle-glow,
-            .memorial-candle-section[data-state="active"] .memorial-candle-halo {
+            .memorial-candle-section[data-state="active"] .memorial-candle-glow {
                 display: block;
                 animation: memorial-candle-glow 3.3s ease-in-out infinite;
-                opacity: 1;
+                opacity: 0.5;
                 visibility: visible;
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-smoke {
                 opacity: 0;
-                transform: translate3d(0, 6px, 0) scale(0.72);
+                animation: none;
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-body {
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 12px 26px rgba(193,149,74,0.16);
-                filter: saturate(1.02);
+                background: linear-gradient(to bottom, #f5f5f5, #d9d9d9) !important;
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.15) !important;
+            }
+
+            .memorial-candle-section[data-state="active"] .memorial-candle-wick {
+                background: #222 !important;
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-stage {
@@ -133,32 +190,19 @@
 
             .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-flame,
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-inner-flame,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-inner-flame,
             .memorial-candle-section[data-state="inactive"] .memorial-candle-glow,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-glow,
             .memorial-candle-section[data-state="inactive"] .memorial-candle-halo,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-halo {
-                display: none;
+                display: none !important;
                 opacity: 0;
                 visibility: hidden;
-                transform: translate3d(0, 8px, 0) scale(0.6);
-                filter: saturate(0.3);
-            }
-
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-flame,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-flame,
-            .memorial-candle-section[data-state="inactive"] .memorial-candle-inner-flame,
-            .memorial-candle-section[data-state="disabled"] .memorial-candle-inner-flame {
-                opacity: 0;
-                transform: translate3d(0, 10px, 0) scale(0.52);
-                filter: saturate(0.2) blur(1px);
             }
 
             .memorial-candle-section[data-state="inactive"][data-has-history="true"] .memorial-candle-smoke,
             .memorial-candle-section[data-state="disabled"][data-has-history="true"] .memorial-candle-smoke {
-                animation: memorial-candle-smoke 3.8s ease-out infinite;
-                opacity: 0.58;
+                animation: memorial-candle-smoke 3s ease-out infinite;
+                opacity: 0.3;
             }
 
             .memorial-candle-section[data-has-history="false"] .memorial-candle-smoke {
@@ -168,13 +212,58 @@
 
             .memorial-candle-section[data-state="inactive"] .memorial-candle-body,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-body {
-                filter: saturate(0.82) brightness(0.98);
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), 0 8px 18px rgba(120,92,45,0.08);
+                background: linear-gradient(to bottom, #e8e8e8, #cfcfcf) !important;
+                box-shadow: inset 0 -5px 10px rgba(0,0,0,0.12) !important;
+            }
+
+            .memorial-candle-section[data-state="inactive"] .memorial-candle-wick,
+            .memorial-candle-section[data-state="disabled"] .memorial-candle-wick {
+                background: #0f0f0f !important;
             }
 
             .memorial-candle-section[data-state="inactive"] .memorial-candle-stage,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-stage {
                 box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 28px rgba(18,14,12,0.18);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .memorial-candle-section #memorialCandleAnniversaryWrap,
+                .memorial-candle-section #memorialFamilyCandleWrap,
+                .memorial-candle-section #memorialFamilyCandleWrap > div:last-child,
+                .memorial-candle-section #memorialCandleCountdownWrap,
+                .memorial-candle-section #memorialCandleCurrentLighterWrap,
+                .memorial-candle-section #memorialCandleComposer,
+                .memorial-candle-section #memorialCandleMessageInputWrap,
+                .memorial-candle-section #memorialCandleWallEmpty,
+                .memorial-candle-section #memorialCandleWallGrid > article,
+                .memorial-candle-section #memorialCandleRecentList > li,
+                .memorial-candle-section #memorialFamilyManager,
+                .memorial-candle-section #memorialFamilyPremiumWrap,
+                .memorial-candle-section .memorial-candle-message-disclosure,
+                .memorial-candle-section #memorialCandleMessageInput,
+                .memorial-candle-section #memorialFamilyMessageInput {
+                    background: transparent !important;
+                    box-shadow: none !important;
+                }
+            }
+
+            .dark .memorial-candle-section #memorialCandleAnniversaryWrap,
+            .dark .memorial-candle-section #memorialFamilyCandleWrap,
+            .dark .memorial-candle-section #memorialFamilyCandleWrap > div:last-child,
+            .dark .memorial-candle-section #memorialCandleCountdownWrap,
+            .dark .memorial-candle-section #memorialCandleCurrentLighterWrap,
+            .dark .memorial-candle-section #memorialCandleComposer,
+            .dark .memorial-candle-section #memorialCandleMessageInputWrap,
+            .dark .memorial-candle-section #memorialCandleWallEmpty,
+            .dark .memorial-candle-section #memorialCandleWallGrid > article,
+            .dark .memorial-candle-section #memorialCandleRecentList > li,
+            .dark .memorial-candle-section #memorialFamilyManager,
+            .dark .memorial-candle-section #memorialFamilyPremiumWrap,
+            .dark .memorial-candle-section .memorial-candle-message-disclosure,
+            .dark .memorial-candle-section #memorialCandleMessageInput,
+            .dark .memorial-candle-section #memorialFamilyMessageInput {
+                background: transparent !important;
+                box-shadow: none !important;
             }
 
             .memorial-candle-message-disclosure summary::-webkit-details-marker {
@@ -1337,12 +1426,10 @@
                                                     <div class="memorial-candle-glow absolute bottom-[4.65rem] h-[3.15rem] w-[3.15rem] rounded-full bg-[radial-gradient(circle,rgba(255,190,80,0.22),transparent_70%)]"></div>
                                                     <div class="memorial-candle-halo absolute bottom-[4.45rem] h-[2.3rem] w-[2.3rem] rounded-full bg-amber-200/35 blur-md"></div>
                                                     <div class="memorial-candle-smoke absolute bottom-[4.85rem] h-8 w-4 rounded-full bg-stone-400/60 blur-[3px]"></div>
-                                                    <div class="absolute bottom-[4.55rem] h-[0.65rem] w-[2px] rounded-full bg-stone-900"></div>
+                                                    <div class="memorial-candle-wick absolute bottom-[4.55rem] h-[0.65rem] w-[2px] rounded-full bg-stone-900"></div>
                                                     <div class="memorial-candle-flame absolute bottom-[4.82rem] h-[1.6rem] w-[0.78rem] rounded-[50%_50%_45%_45%] bg-[radial-gradient(circle_at_50%_30%,#fff7c2_0%,#ffd36a_40%,#ff8c2a_75%,transparent_100%)] blur-[0.4px]"></div>
                                                     <div class="memorial-candle-inner-flame absolute bottom-[5.05rem] h-[0.95rem] w-[0.38rem] rounded-[50%_50%_45%_45%] bg-gradient-to-t from-orange-300 via-yellow-100 to-white"></div>
-                                                    <div class="memorial-candle-body relative h-[5.5rem] w-[1.15rem] overflow-hidden rounded-[0.5rem] bg-gradient-to-b from-[#f5f5f5] to-[#d9d9d9] shadow-[inset_0_-5px_10px_rgba(0,0,0,0.15)]">
-                                                        <div class="absolute inset-x-0 top-0 h-4 rounded-t-[0.5rem] bg-white/55"></div>
-                                                    </div>
+                                                    <div class="memorial-candle-body relative overflow-hidden bg-gradient-to-b from-[#f5f5f5] to-[#d9d9d9] shadow-[inset_0_-5px_10px_rgba(0,0,0,0.15)]"></div>
                                                     <div class="absolute bottom-0 h-3 w-16 rounded-full bg-black/35 blur-md"></div>
                                                 </div>
                                             </div>
