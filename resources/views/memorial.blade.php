@@ -86,21 +86,35 @@
                 transition: opacity 700ms ease, transform 700ms ease, filter 700ms ease, box-shadow 700ms ease;
             }
 
+            .memorial-candle-flame,
+            .memorial-candle-inner-flame,
+            .memorial-candle-glow,
+            .memorial-candle-halo {
+                opacity: 0;
+                visibility: hidden;
+            }
+
             .memorial-candle-section[data-state="active"] .memorial-candle-flame {
+                display: block;
                 animation: memorial-candle-flicker 2.6s ease-in-out infinite;
                 opacity: 1;
+                visibility: visible;
                 filter: saturate(1.08);
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-inner-flame {
+                display: block;
                 animation: memorial-candle-flicker 2.1s ease-in-out infinite reverse;
                 opacity: 1;
+                visibility: visible;
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-glow,
             .memorial-candle-section[data-state="active"] .memorial-candle-halo {
+                display: block;
                 animation: memorial-candle-glow 3.3s ease-in-out infinite;
                 opacity: 1;
+                visibility: visible;
             }
 
             .memorial-candle-section[data-state="active"] .memorial-candle-smoke {
@@ -125,7 +139,9 @@
             .memorial-candle-section[data-state="disabled"] .memorial-candle-glow,
             .memorial-candle-section[data-state="inactive"] .memorial-candle-halo,
             .memorial-candle-section[data-state="disabled"] .memorial-candle-halo {
+                display: none;
                 opacity: 0;
+                visibility: hidden;
                 transform: translate3d(0, 8px, 0) scale(0.6);
                 filter: saturate(0.3);
             }
@@ -1242,7 +1258,7 @@
                                 id="memorialCandleSection"
                                 data-state="{{ (string) ($candleSummary['state'] ?? 'inactive') }}"
                                 data-has-history="{{ ((int) ($candleSummary['totalCandles'] ?? 0)) > 0 ? 'true' : 'false' }}"
-                                class="memorial-candle-section overflow-hidden rounded-[1.75rem] border border-amber-100/80 bg-gradient-to-br from-[#fff7ec] via-white to-[#f4ede3] p-5 text-left shadow-[0_18px_50px_rgba(120,92,45,0.12)] md:p-6"
+                                class="memorial-candle-section overflow-hidden rounded-[1.75rem] border border-border/80 bg-transparent p-5 text-left shadow-none md:p-6"
                             >
                                 <div class="space-y-5">
                                     <div
