@@ -50,7 +50,9 @@ it('renders the digital candle module on the public memorial page when enabled',
     expect($content)->toContain('id="memorialCandleComposer"');
     expect($content)->toContain('id="memorialCandleWallWrap"');
     expect($content)->toContain('id="memorialCandleWallLatest"');
+    expect($content)->toContain('id="memorialCandleWallPanel"');
     expect($content)->toContain('id="memorialCandleRecentLatest"');
+    expect($content)->toContain('id="memorialCandleRecentPanel"');
     expect($content)->toContain('id="memorialFamilyManager"');
     expect($content)->not->toContain('ðŸ•¯');
 });
