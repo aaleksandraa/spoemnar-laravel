@@ -43,6 +43,7 @@ it('renders the digital candle module on the public memorial page when enabled',
     expect($content)->toContain('Svijeca sjecanja');
     expect($content)->toContain('Ugasena');
     expect($content)->toContain('/api/v1/memorials/');
+    expect($content)->toContain('id="memorialCandleComposer"');
     expect($content)->toContain('id="memorialCandleWallWrap"');
     expect($content)->toContain('id="memorialFamilyManager"');
 });
